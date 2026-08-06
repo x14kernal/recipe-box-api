@@ -1,70 +1,42 @@
 import type { Request, Response } from 'express';
 import { recipes } from '../data/recipes.js';
 import {
-  createRecipeSchema,
-  updateRecipeSchema,
   type CreateRecipe,
   type Recipe,
   type UpdateRecipe,
 } from '../types/recipe.js';
+import { NotFoundError } from '../errors/NotFoundError.js';
 
 export function getAllRecipes(req: Request, res: Response) {
-  res.json(recipes);
+  return res.json(recipes);
 }
 
 export function getRecipeById(req: Request, res: Response) {
-  const id = req.params.id;
-  const recipe = recipes.find((recipe) => recipe.id === id);
-  if (!recipe) {
-    return res.status(404).json({ message: 'Recipe not found!' });
-  }
-  res.json(recipe);
+  const recipe = recipes.find((recipe) => recipe.id === req.params.id);
+  if (!recipe) throw new NotFoundError('Recipe not found');
+  return res.json(recipe);
 }
 
 export function createRecipe(req: Request, res: Response) {
-  const validated = createRecipeSchema.safeParse(req.body);
-
-  if (!validated.success) {
-    return res.status(400).json({
-      success: false,
-      message: 'Validation failed',
-      errors: validated.error.issues.map((issue) => ({
-        field: issue.path.join('.'),
-        message: issue.message,
-      })),
-    });
-  }
-
-  const recipe = createNewRecipe(validated.data);
+  const recipe = createNewRecipe(req.body);
   persistRecipe(recipe);
-  res.status(201).json({ success: true, data: recipe });
+  return res.status(201).json({ success: true, data: recipe });
 }
 
 export function updateRecipe(req: Request<{ id: string }>, res: Response) {
-  const validated = updateRecipeSchema.safeParse(req.body);
-
-  if (!validated.success) {
-    return res.status(400).json({
-      success: false,
-      message: 'Validation failed',
-      errors: validated.error.issues.map((issue) => ({
-        field: issue.path.join('.'),
-        message: issue.message,
-      })),
-    });
-  }
-
   const recipeIndex = recipes.findIndex((r) => r.id === req.params.id);
-  if (recipeIndex === -1)
-    return res.status(404).json({
-      success: false,
-      message: 'Recipe not found',
-    });
-
-  res.status(200).json({
+  if (recipeIndex === -1) throw new NotFoundError('Recipe not found');
+  return res.status(200).json({
     success: true,
-    data: updateExistRecipe(recipeIndex, validated.data),
+    data: updateExistRecipe(recipeIndex, req.body),
   });
+}
+
+export function deleteRecipe(req: Request<{ id: string }>, res: Response) {
+  const recipeIndex = recipes.findIndex((r) => r.id === req.params.id);
+  if (recipeIndex === -1) throw new NotFoundError('Recipe not found');
+  removeRecipe(recipeIndex);
+  return res.status(204).send();
 }
 
 function createNewRecipe(data: CreateRecipe): Recipe {
@@ -85,4 +57,8 @@ function updateExistRecipe(
 
 function persistRecipe(recipe: Recipe) {
   recipes.push(recipe);
+}
+
+function removeRecipe(recipeIndex: number) {
+  recipes.splice(recipeIndex, 1);
 }
