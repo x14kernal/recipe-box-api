@@ -8,6 +8,10 @@ import {
 import { NotFoundError } from '../errors/NotFoundError.js';
 
 export function getAllRecipes(req: Request, res: Response) {
+  const tag = req.query.tag;
+  if (tag && typeof tag === 'string') {
+    return res.json(recipes.filter((r) => r.tags.includes(tag)));
+  }
   return res.json(recipes);
 }
 
