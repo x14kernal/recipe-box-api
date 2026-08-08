@@ -1,0 +1,52 @@
+### Get all recipes
+GET http://localhost:3000/api/recipes
+
+### Get recipes with tag 'easy'
+GET http://localhost:3000/api/recipes?tag=easy
+
+### Get recipes with tag 'not-exist'
+GET http://localhost:3000/api/recipes?tag=not-exist
+
+### Post a new recipe
+POST http://localhost:3000/api/recipes
+Content-Type: application/json
+
+{
+  "title": "Classic Pan",
+  "ingredients": [
+    "Flour",
+    "Baking powder"
+  ],
+  "steps": [
+    "Mix",
+    "Serve"
+  ],
+  "tags": [
+    "breakfast"
+  ]
+}
+
+### Update recipe with id=20
+PUT http://localhost:3000/api/recipes/20
+Content-Type: application/json
+
+{
+  "title": "Lentil Soup updated",
+  "ingredients": [
+    "Red lentils",
+    "Onion",
+    "Vegetable broth"
+  ],
+  "steps": [
+    "Simmer",
+    "Blend"
+  ],
+  "tags": [
+    "soup",
+    "healthy",
+    "vegan"
+  ]
+}
+
+### Delete recipe with id=19
+DELETE http://localhost:3000/api/recipes/19
