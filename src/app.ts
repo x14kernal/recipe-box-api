@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express, { type Express } from 'express';
 import recipesRouter from './routes/recipe.js';
 import { errorHandler } from './middlewares/errorHandler.js';
