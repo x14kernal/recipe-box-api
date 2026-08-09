@@ -399,5 +399,50 @@
     "tags": [
       "breakfast"
     ]
+  },
+  {
+    "id": "1786254188972",
+    "title": "Classic Pan",
+    "ingredients": [
+      "Flour",
+      "Baking powder"
+    ],
+    "steps": [
+      "Mix",
+      "Serve"
+    ],
+    "tags": [
+      "breakfast"
+    ]
+  },
+  {
+    "id": "1786254315049",
+    "title": "Classic Pan",
+    "ingredients": [
+      "Flour",
+      "Baking powder"
+    ],
+    "steps": [
+      "Mix",
+      "Serve"
+    ],
+    "tags": [
+      "breakfast"
+    ]
+  },
+  {
+    "id": "1786254537517",
+    "title": "Classic Pan",
+    "ingredients": [
+      "Flour",
+      "Baking powder"
+    ],
+    "steps": [
+      "Mix",
+      "Serve"
+    ],
+    "tags": [
+      "breakfast"
+    ]
   }
 ]
