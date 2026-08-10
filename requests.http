@@ -4,8 +4,20 @@ GET http://localhost:3000/api/recipes
 ### Get recipes with tag 'easy'
 GET http://localhost:3000/api/recipes?tag=easy
 
+### Get recipes with ingredient 'rice'
+GET http://localhost:3000/api/recipes?ingredient=rice
+
+### Get recipes with ingredient 'rice' and tag 'easy'
+GET http://localhost:3000/api/recipes?ingredient=rice&tag=main-course
+
 ### Get recipes with tag 'not-exist'
 GET http://localhost:3000/api/recipes?tag=not-exist
+
+### Get recipe with id 2
+GET http://localhost:3000/api/recipes/2
+
+### Get a random recipe
+GET http://localhost:3000/api/recipes/random
 
 ### Post a new recipe
 POST http://localhost:3000/api/recipes
