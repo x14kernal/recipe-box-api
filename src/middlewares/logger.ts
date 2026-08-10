@@ -3,6 +3,11 @@ import { appendFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 
 const logger: RequestHandler = async (req, res, next) => {
+  if (process.env.NODE_ENV === 'production') {
+    console.log(`${req.method} ${req.originalUrl}`);
+    return next();
+  }
+
   const message = `${new Date().toISOString()} ${req.method.padEnd(6, ' ')} ${req.url}\n`;
   const logsDir = path.join(import.meta.dirname, '../../logs');
   const logPath = path.join(logsDir, 'requests.log');

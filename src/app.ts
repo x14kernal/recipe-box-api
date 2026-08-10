@@ -11,8 +11,10 @@ app.use(express.json()); // to read data coming in from the client, convert JSON
 app.use(logger);
 
 app.get('/', (req, res) => {
+  const baseUrl = `${req.protocol}://${req.get('host')}`;
   res.json({
-    message: 'Check http://localhost:3000/api/recipes',
+    message: 'Recipe Box API',
+    recipes: `${baseUrl}/api/recipes`,
   });
 });
 app.use('/api/recipes', recipesRouter);
