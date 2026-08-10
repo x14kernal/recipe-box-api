@@ -15,6 +15,22 @@ The API lets you:
 - Get a random recipe
 - Save recipes in a JSON file
 
+## Live Demo
+
+**Demo URL:** https://recipe-box-api-x-azure.vercel.app/
+
+> **Note**
+>
+> The project is deployed on **Vercel** for demonstration purposes.
+>
+> Because the current version uses **JSON-file persistence**, Vercel's serverless environment cannot provide persistent filesystem storage.
+>
+> Therefore, only the root endpoint (`GET /`) is available in the deployed version.
+>
+> The complete API works correctly when running locally, where JSON-file persistence is supported.
+>
+> A future version of this project will use a database, allowing the full API to be deployed without these limitations.
+
 ## Tech Stack
 
 - Node.js
@@ -27,16 +43,17 @@ The API lets you:
 
 ## API Endpoints
 
-| Method | Path                  | Description                                        |
-| ------ | --------------------- | -------------------------------------------------- |
-| GET    | `/api/recipes`        | Get recipes with optional filtering and pagination |
-| GET    | `/api/recipes/random` | Get a random recipe                                |
-| GET    | `/api/recipes/:id`    | Get one recipe                                     |
-| POST   | `/api/recipes`        | Create a recipe                                    |
-| PUT    | `/api/recipes/:id`    | Update a recipe                                    |
-| DELETE | `/api/recipes/:id`    | Delete a recipe                                    |
+| Method | Path                  | Description                                        | Local | Live Demo |
+| ------ | --------------------- | -------------------------------------------------- | :---: | :-------: |
+| GET    | `/`                   | API information                                    |  ✅   |    ✅     |
+| GET    | `/api/recipes`        | Get recipes with optional filtering and pagination |  ✅   |    ❌     |
+| GET    | `/api/recipes/random` | Get a random recipe                                |  ✅   |    ❌     |
+| GET    | `/api/recipes/:id`    | Get one recipe                                     |  ✅   |    ❌     |
+| POST   | `/api/recipes`        | Create a recipe                                    |  ✅   |    ❌     |
+| PUT    | `/api/recipes/:id`    | Update a recipe                                    |  ✅   |    ❌     |
+| DELETE | `/api/recipes/:id`    | Delete a recipe                                    |  ✅   |    ❌     |
 
-### Query Parameters
+## Query Parameters
 
 The `GET /api/recipes` endpoint supports:
 
@@ -150,6 +167,8 @@ Content-Type: application/json
 DELETE http://localhost:3000/api/recipes/1
 ```
 
+> **Note:** `DELETE` is disabled when `NODE_ENV=production`.
+
 ## Run the Project Locally
 
 ### 1. Clone the repository
@@ -189,54 +208,45 @@ http://localhost:3000
 
 ## Data Storage
 
-Recipes are saved in a JSON file.
+Recipes are stored in `data/recipes.json`.
 
-The data stays after the server stops and starts again.
+The data survives server restarts during local development.
 
-This project does not use a database yet. A real database will be added in a later phase.
+This project does not use a database yet. A database will be added in a future version.
 
 ## Validation and Errors
 
 The API validates recipe data before creating or updating a recipe.
 
-For bad data, the API returns:
-
-```text
-400 Bad Request
-```
-
-If a recipe does not exist, the API returns:
-
-```text
-404 Not Found
-```
-
-A successful recipe creation returns:
-
-```text
-201 Created
-```
-
-A successful delete returns:
-
-```text
-204 No Content
-```
+| Status | Description                      |
+| ------ | -------------------------------- |
+| `201`  | Recipe created successfully      |
+| `204`  | Recipe deleted successfully      |
+| `400`  | Invalid request data             |
+| `403`  | Delete is disabled in production |
+| `404`  | Recipe not found                 |
 
 ## Nice-to-Have Features
 
-All current nice-to-have features have been implemented:
+Implemented features:
 
-- [x] Random recipe endpoint
-- [x] Search by ingredient name
-- [x] Pagination on the recipe list
+- ✅ Random recipe endpoint
+- ✅ Search by ingredient
+- ✅ Pagination
+- ✅ Combined tag and ingredient filtering
 
 ## Definition of Done
 
-- [x] All 5 core routes work and return the correct status codes.
-- [x] Invalid input returns `400`, not a crash.
-- [x] A recipe that does not exist returns `404`.
-- [x] Data survives a server restart.
-- [x] `.env` is used for configuration and is not committed to Git.
-- [x] README lists every endpoint with an example request.
-- [ ] The API is deployed and can be reached with a public URL.
+- [x] All 5 core routes work correctly.
+- [x] Invalid input returns `400`.
+- [x] Missing recipe returns `404`.
+- [x] Data survives server restarts.
+- [x] `.env` is used and not committed.
+- [x] CORS is configured.
+- [x] Request logging middleware is implemented.
+- [x] Controllers are separated from routes.
+- [x] README documents every endpoint with examples.
+- [x] Random recipe endpoint.
+- [x] Ingredient search.
+- [x] Pagination.
+- [~] Live demo available (root endpoint only due to Vercel serverless filesystem limitations).
