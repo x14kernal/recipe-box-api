@@ -92,6 +92,12 @@ export function updateRecipe(req: Request<{ id: string }>, res: Response) {
 }
 
 export function deleteRecipe(req: Request<{ id: string }>, res: Response) {
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(403).json({
+      success: false,
+      message: 'Delete is disabled in production',
+    });
+  }
   const recipes = loadRecipes();
   const recipeIndex = recipes.findIndex((r) => r.id === req.params.id);
   if (recipeIndex === -1) throw new NotFoundError('Recipe not found');
