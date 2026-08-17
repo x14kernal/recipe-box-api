@@ -1,20 +1,20 @@
 ### Get all recipes
 GET http://localhost:3000/api/recipes
 
-### Get recipes with tag 'easy'
-GET http://localhost:3000/api/recipes?tag=easy
+### Get recipes with tag 'mexican'
+GET http://localhost:3000/api/recipes?tag=mexican
 
-### Get recipes with ingredient 'rice'
-GET http://localhost:3000/api/recipes?ingredient=rice
+### Get recipes with ingredient 'eggs'
+GET http://localhost:3000/api/recipes?ingredient=eggs
 
-### Get recipes with ingredient 'rice' and tag 'easy'
-GET http://localhost:3000/api/recipes?ingredient=rice&tag=main-course
+### Get recipes with ingredient 'cilantro' and tag 'mexican'
+GET http://localhost:3000/api/recipes?ingredient=cilantro&tag=mexican
 
 ### Get recipes with tag 'not-exist'
 GET http://localhost:3000/api/recipes?tag=not-exist
 
-### Get recipe with id 2
-GET http://localhost:3000/api/recipes/2
+### Get recipe with id 10000000-0000-0000-0000-000000000001
+GET http://localhost:3000/api/recipes/10000000-0000-0000-0000-000000000001
 
 ### Get a random recipe
 GET http://localhost:3000/api/recipes/random
@@ -24,9 +24,11 @@ POST http://localhost:3000/api/recipes
 Content-Type: application/json
 
 {
-  "title": "Classic Pan",
+  "title": "Classic Pan 2",
   "ingredients": [
     "Flour",
+    "Flour",
+    "Baking powder",
     "Baking powder"
   ],
   "steps": [
@@ -34,15 +36,18 @@ Content-Type: application/json
     "Serve"
   ],
   "tags": [
-    "breakfast"
+    "Hreakfast",
+    "Healthy",
+    "Random Tag"
   ]
 }
 
 ### Update recipe with id=20
-PUT http://localhost:3000/api/recipes/20
+PATCH  http://localhost:3000/api/recipes/10000000-0000-0000-0000-000000000001
 Content-Type: application/json
 
 {
+  "user_id":"11111111-1111-1111-1111-111111111111",
   "title": "Lentil Soup updated",
   "ingredients": [
     "Red lentils",
@@ -61,4 +66,4 @@ Content-Type: application/json
 }
 
 ### Delete recipe with id=19
-DELETE http://localhost:3000/api/recipes/19
+DELETE http://localhost:3000/api/recipes/10000000-0000-0000-0000-000000000004

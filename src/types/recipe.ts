@@ -12,7 +12,9 @@ const recipeFieldsSchema = z.object({
 });
 
 export const createRecipeSchema = recipeFieldsSchema;
-export const updateRecipeSchema = recipeFieldsSchema.partial();
+export const updateRecipeSchema = recipeFieldsSchema.partial().extend({
+  user_id: z.string(), // for now till auth
+});
 export const recipeSchema = recipeFieldsSchema.extend({
   id: z.string(),
 });

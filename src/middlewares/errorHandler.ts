@@ -4,6 +4,7 @@ import { AppError } from '../errors/AppError.js';
 
 export const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
   // maybe send to monitoring service like Sentry, DataDog, ..etc. you can do this here.
+  console.error(err);
 
   // Validation Errors
   if (err instanceof ZodError) {
