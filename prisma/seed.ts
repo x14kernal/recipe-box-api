@@ -28,7 +28,7 @@ async function main() {
         password_hash: 'demo-password-hash',
       },
       {
-        id: '4444444444-4444-44444-4444-444444444',
+        id: '44444444-4444-4444-4444-444444444444',
         email: 'ali@example.com',
         password_hash: 'demo-password-hash',
       },
@@ -38,12 +38,12 @@ async function main() {
   // Tags
   await prisma.tags.createMany({
     data: [
-      { id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', name: 'Italian' },
-      { id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', name: 'Mexican' },
-      { id: 'cccccccc-cccc-cccc-cccc-cccccccccccc', name: 'Breakfast' },
-      { id: 'dddddddd-dddd-dddd-dddd-dddddddddddd', name: 'Healthy' },
-      { id: 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', name: 'Quick' },
-      { id: 'ffffffff-ffff-ffff-ffff-ffffffffffff', name: 'Dessert' },
+      { id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', name: 'italian' },
+      { id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', name: 'mexican' },
+      { id: 'cccccccc-cccc-cccc-cccc-cccccccccccc', name: 'breakfast' },
+      { id: 'dddddddd-dddd-dddd-dddd-dddddddddddd', name: 'healthy' },
+      { id: 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', name: 'quick' },
+      { id: 'ffffffff-ffff-ffff-ffff-ffffffffffff', name: 'dessert' },
     ],
   });
 

@@ -3,8 +3,8 @@ import {
   createRecipe,
   deleteRecipe,
   getAllRecipes,
+  getById,
   getRandomRecipe,
-  getRecipeById,
   updateRecipe,
 } from '../controllers/recipe.js';
 import { validate } from '../middlewares/validate.js';
@@ -14,9 +14,9 @@ const router: Router = Router();
 
 router.get('/', getAllRecipes);
 router.get('/random', getRandomRecipe);
-router.get('/:id', getRecipeById);
+router.get('/:id', getById);
 router.post('/', validate(createRecipeSchema), createRecipe);
-router.put('/:id', validate(updateRecipeSchema), updateRecipe);
+router.patch('/:id', validate(updateRecipeSchema), updateRecipe);
 router.delete('/:id', deleteRecipe);
 
 export default router;

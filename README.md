@@ -1,6 +1,6 @@
 # Recipe Box API
 
-A simple REST API for storing and managing recipes.
+A REST API for storing, managing, and searching recipes using **Node.js, Express, TypeScript, Prisma, and PostgreSQL**.
 
 The API lets you:
 
@@ -13,23 +13,16 @@ The API lets you:
 - Search recipes by ingredient
 - Paginate recipe results
 - Get a random recipe
-- Save recipes in a JSON file
+- Store recipes in PostgreSQL
+- Manage recipe tags with a many-to-many relationship
 
 ## Live Demo
 
 **Demo URL:** https://recipe-box-api-x-azure.vercel.app/
 
-> **Note**
->
-> The project is deployed on **Vercel** for demonstration purposes.
->
-> Because the current version uses **JSON-file persistence**, Vercel's serverless environment cannot provide persistent filesystem storage.
->
-> Therefore, only the root endpoint (`GET /`) is available in the deployed version.
->
-> The complete API works correctly when running locally, where JSON-file persistence is supported.
->
-> A future version of this project will use a database, allowing the full API to be deployed without these limitations.
+The API is deployed on **Vercel** and uses **Neon PostgreSQL** for persistent database storage.
+
+The deployed API supports the same recipe functionality as the local API because data is stored in PostgreSQL rather than the server's local filesystem.
 
 ## Tech Stack
 
@@ -37,6 +30,9 @@ The API lets you:
 - Express 5
 - TypeScript
 - Zod
+- Prisma
+- PostgreSQL
+- Neon
 - dotenv
 - CORS
 - pnpm
@@ -46,12 +42,12 @@ The API lets you:
 | Method | Path                  | Description                                        | Local | Live Demo |
 | ------ | --------------------- | -------------------------------------------------- | :---: | :-------: |
 | GET    | `/`                   | API information                                    |  ✅   |    ✅     |
-| GET    | `/api/recipes`        | Get recipes with optional filtering and pagination |  ✅   |    ❌     |
-| GET    | `/api/recipes/random` | Get a random recipe                                |  ✅   |    ❌     |
-| GET    | `/api/recipes/:id`    | Get one recipe                                     |  ✅   |    ❌     |
-| POST   | `/api/recipes`        | Create a recipe                                    |  ✅   |    ❌     |
-| PUT    | `/api/recipes/:id`    | Update a recipe                                    |  ✅   |    ❌     |
-| DELETE | `/api/recipes/:id`    | Delete a recipe                                    |  ✅   |    ❌     |
+| GET    | `/api/recipes`        | Get recipes with optional filtering and pagination |  ✅   |    ✅     |
+| GET    | `/api/recipes/random` | Get a random recipe                                |  ✅   |    ✅     |
+| GET    | `/api/recipes/:id`    | Get one recipe                                     |  ✅   |    ✅     |
+| POST   | `/api/recipes`        | Create a recipe                                    |  ✅   |    ✅     |
+| PATCH  | `/api/recipes/:id`    | Update a recipe                                    |  ✅   |    ✅     |
+| DELETE | `/api/recipes/:id`    | Delete a recipe                                    |  ✅   |    ✅     |
 
 ## Query Parameters
 
@@ -66,7 +62,7 @@ The `GET /api/recipes` endpoint supports:
 
 The maximum `limit` is `30`.
 
-Filters can be combined with pagination.
+Filters can be combined with each other and with pagination.
 
 ## Example Requests
 
@@ -79,19 +75,25 @@ GET http://localhost:3000/api/recipes
 ### Filter by tag
 
 ```http
-GET http://localhost:3000/api/recipes?tag=easy
+GET http://localhost:3000/api/recipes?tag=mexican
 ```
 
 ### Filter by ingredient
 
 ```http
-GET http://localhost:3000/api/recipes?ingredient=rice
+GET http://localhost:3000/api/recipes?ingredient=eggs
 ```
 
 ### Filter by ingredient and tag
 
 ```http
-GET http://localhost:3000/api/recipes?ingredient=rice&tag=easy
+GET http://localhost:3000/api/recipes?ingredient=cilantro&tag=mexican
+```
+
+### Filter with no matching recipes
+
+```http
+GET http://localhost:3000/api/recipes?tag=not-exist
 ```
 
 ### Paginate recipes
@@ -103,7 +105,7 @@ GET http://localhost:3000/api/recipes?page=2&limit=5
 ### Filter and paginate
 
 ```http
-GET http://localhost:3000/api/recipes?ingredient=rice&tag=easy&page=2&limit=5
+GET http://localhost:3000/api/recipes?ingredient=eggs&tag=mexican&page=2&limit=5
 ```
 
 The response includes:
@@ -118,7 +120,7 @@ The response includes:
 ### Get one recipe
 
 ```http
-GET http://localhost:3000/api/recipes/1
+GET http://localhost:3000/api/recipes/10000000-0000-0000-0000-000000000001
 ```
 
 ### Get a random recipe
@@ -134,17 +136,18 @@ POST http://localhost:3000/api/recipes
 Content-Type: application/json
 
 {
-  "title": "Pasta",
+  "title": "Classic Pan",
   "ingredients": [
-    "pasta",
-    "tomato sauce"
+    "Flour",
+    "Baking powder"
   ],
   "steps": [
-    "Boil the pasta",
-    "Add the sauce"
+    "Mix",
+    "Serve"
   ],
   "tags": [
-    "easy",
+    "breakfast",
+    "healthy",
     "quick"
   ]
 }
@@ -153,21 +156,94 @@ Content-Type: application/json
 ### Update a recipe
 
 ```http
-PUT http://localhost:3000/api/recipes/1
+PATCH http://localhost:3000/api/recipes/10000000-0000-0000-0000-000000000001
 Content-Type: application/json
 
 {
-  "title": "Easy Pasta"
+  "title": "Lentil Soup Updated",
+  "ingredients": [
+    "Red lentils",
+    "Onion",
+    "Vegetable broth"
+  ],
+  "steps": [
+    "Simmer",
+    "Blend"
+  ],
+  "tags": [
+    "soup",
+    "healthy",
+    "vegan"
+  ]
 }
 ```
 
 ### Delete a recipe
 
 ```http
-DELETE http://localhost:3000/api/recipes/1
+DELETE http://localhost:3000/api/recipes/10000000-0000-0000-0000-000000000004
 ```
 
-> **Note:** `DELETE` is disabled when `NODE_ENV=production`.
+## Database
+
+The API uses **PostgreSQL** hosted by **Neon** and accessed through **Prisma**.
+
+The database contains:
+
+- `User`
+- `Recipe`
+- `Tag`
+- `RecipeTag`
+
+`Recipe` and `Tag` have a many-to-many relationship through `RecipeTag`.
+
+Recipe tags are provided as tag names by the API and existing tags are reused while new tags are created when necessary.
+
+The `Recipe.userId` field is indexed for efficient lookups by user.
+
+## Environment Variables
+
+Create a `.env` file in the project root:
+
+```env
+PORT=3000
+DATABASE_URL="your-neon-pooled-connection-string"
+DIRECT_URL="your-neon-direct-connection-string"
+```
+
+Do not commit the `.env` file to Git.
+
+## Database Setup
+
+Install dependencies:
+
+```bash
+pnpm install
+```
+
+Apply Prisma migrations:
+
+```bash
+pnpm prisma migrate dev
+```
+
+Generate the Prisma client:
+
+```bash
+pnpm prisma generate
+```
+
+Seed the database:
+
+```bash
+pnpm prisma db seed
+```
+
+To inspect the database locally:
+
+```bash
+pnpm prisma studio
+```
 
 ## Run the Project Locally
 
@@ -184,17 +260,21 @@ cd recipe-box-api
 pnpm install
 ```
 
-### 3. Create the `.env` file
+### 3. Configure environment variables
 
-Create a `.env` file in the project root:
-
-```env
-PORT=3000
-```
+Create `.env` with the required `PORT`, and `DATABASE_URL` values.
 
 Do not commit the `.env` file to Git.
 
-### 4. Start the server
+### 4. Set up the database
+
+```bash
+pnpm prisma migrate dev
+pnpm prisma generate
+pnpm prisma db seed
+```
+
+### 5. Start the server
 
 ```bash
 pnpm dev
@@ -208,11 +288,13 @@ http://localhost:3000
 
 ## Data Storage
 
-Recipes are stored in `data/recipes.json`.
+Recipes are stored in **PostgreSQL**, not in a local JSON file.
 
-The data survives server restarts during local development.
+Prisma is responsible for communicating with the PostgreSQL database.
 
-This project does not use a database yet. A database will be added in a future version.
+Database schema changes are tracked through Prisma migrations in `prisma/migrations/`.
+
+Seed data is managed through `prisma/seed.ts`.
 
 ## Validation and Errors
 
@@ -240,13 +322,20 @@ Implemented features:
 - [x] All 5 core routes work correctly.
 - [x] Invalid input returns `400`.
 - [x] Missing recipe returns `404`.
-- [x] Data survives server restarts.
+- [x] Data persists through PostgreSQL.
 - [x] `.env` is used and not committed.
 - [x] CORS is configured.
 - [x] Request logging middleware is implemented.
 - [x] Controllers are separated from routes.
 - [x] README documents every endpoint with examples.
+- [x] Prisma is integrated with PostgreSQL.
+- [x] Neon is used for persistent database storage.
+- [x] Prisma migrations are configured.
+- [x] Prisma seed data is configured.
 - [x] Random recipe endpoint.
 - [x] Ingredient search.
 - [x] Pagination.
-- [~] Live demo available (root endpoint only due to Vercel serverless filesystem limitations).
+- [x] Combined tag and ingredient filtering.
+- [x] JSON-file storage has been removed.
+- [x] Recipe tags use the relational database model.
+- [x] Deployed API uses persistent PostgreSQL storage.

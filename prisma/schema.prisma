@@ -8,8 +8,8 @@ datasource db {
 }
 
 model recipe_tags {
-  recipe_id String
-  tag_id    String
+  recipe_id String @db.Uuid
+  tag_id    String @db.Uuid
   recipes   recipes @relation(fields: [recipe_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   tags      tags    @relation(fields: [tag_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
@@ -17,28 +17,28 @@ model recipe_tags {
 }
 
 model recipes {
-  id          String        @id
+  id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   title       String
   ingredients String[]
   steps       String[]
-  created_at  DateTime?     @default(now()) @db.Timestamp(6)
-  user_id     String?
+  created_at  DateTime      @default(now()) @db.Timestamp(6)
+  user_id     String        @db.Uuid
   recipe_tags recipe_tags[]
-  users       users?        @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users       users         @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([user_id])
 }
 
 model tags {
-  id          String        @id
+  id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name        String        @unique
   recipe_tags recipe_tags[]
 }
 
 model users {
-  id            String    @id
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   email         String    @unique
   password_hash String
-  created_at    DateTime? @default(now()) @db.Timestamp(6)
+  created_at    DateTime @default(now()) @db.Timestamp(6)
   recipes       recipes[]
 }
