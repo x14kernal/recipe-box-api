@@ -1,6 +1,5 @@
 import type { Request, Response } from 'express';
 import * as recipeService from '../services/recipeService.js';
-import * as userService from '../services/userService.js';
 
 export async function getAllRecipes(req: Request, res: Response) {
   const { page, limit, ingredient, tag } = parseRecipeQuery(req.query);
@@ -39,19 +38,9 @@ export async function getById(req: Request<{ id: string }>, res: Response) {
 }
 
 export async function createRecipe(req: Request, res: Response) {
-  // maybe I'll create a middlerware to prevent creating new recipes if recipes = 100
-  if (process.env.NODE_ENV === 'production') {
-    return res.status(403).json({
-      success: false,
-      message: 'Create is disabled in production',
-    });
-  }
-
-  // There's no real users yet! so I'll use fake users' ids
-  const randomUserId = await userService.getRandomId();
   const recipe = await recipeService.createOne({
     recipe: req.body,
-    userId: randomUserId,
+    userId: req.userId,
   });
 
   return res.status(201).json({ success: true, data: recipe });
@@ -61,18 +50,10 @@ export async function updateRecipe(
   req: Request<{ id: string }>,
   res: Response
 ) {
-  if (process.env.NODE_ENV === 'production') {
-    return res.status(403).json({
-      success: false,
-      message: 'Update is disabled in production',
-    });
-  }
-
   const recipe = await recipeService.updateOne({
     recipeId: req.params.id,
     recipe: req.body,
-    // just for now till build authentication
-    userId: req.body.user_id,
+    userId: req.userId,
   });
 
   return res.status(200).json({
@@ -85,13 +66,12 @@ export async function deleteRecipe(
   req: Request<{ id: string }>,
   res: Response
 ) {
-  if (process.env.NODE_ENV === 'production') {
-    return res.status(403).json({
-      success: false,
-      message: 'Delete is disabled in production',
-    });
-  }
-  await recipeService.deleteOne(req.params.id);
+  // TODO
+  // It doesnot work correctlly: "Foreign key constraint violated on the constraint"
+  await recipeService.deleteOne({
+    recipeId: req.params.id,
+    userId: req.userId,
+  });
   return res.status(204).send();
 }
 

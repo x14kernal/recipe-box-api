@@ -1,11 +1,12 @@
 import type { CreateRecipe, UpdateRecipe } from '../types/recipe.js';
 import { NotFoundError } from '../errors/NotFoundError.js';
+import { ForbiddenError } from '../errors/ForbiddenError.js';
+import { prisma } from '../lib/prisma.js';
 
 import * as recipeRepo from '../repositories/recipeRepository.js';
 import * as tagRepo from '../repositories/tagRepository.js';
 import * as recipeTagRepo from '../repositories/recipeTagRepository.js';
-import { prisma } from '../lib/prisma.js';
-import { ForbiddenError } from '../errors/ForbiddenError.js';
+import { ConflictError } from '../errors/ConflictError.js';
 
 export async function getOne(id: string) {
   const recipe = await recipeRepo.findById(id);
@@ -94,11 +95,9 @@ export async function updateOne({ recipe, recipeId, userId }: UpdateParams) {
   return prisma.$transaction(async (tx) => {
     // 1. Check ownership
     const existing = await recipeRepo.findById(recipeId, tx);
-
     if (!existing) {
       throw new NotFoundError('Recipe not found');
     }
-
     if (existing.user_id !== userId) {
       throw new ForbiddenError('You cannot update this recipe');
     }
@@ -131,6 +130,26 @@ export async function updateOne({ recipe, recipeId, userId }: UpdateParams) {
   });
 }
 
-export async function deleteOne(id: string) {
-  await recipeRepo.deleteById(id);
+type DeleteParams = {
+  recipeId: string;
+  userId: string;
+};
+export async function deleteOne({ recipeId, userId }: DeleteParams) {
+  const existing = await recipeRepo.findById(recipeId);
+
+  if (!existing) {
+    throw new NotFoundError('Recipe not found');
+  }
+
+  if (existing.user_id !== userId) {
+    throw new ForbiddenError('You cannot delete this recipe');
+  }
+
+  try {
+    await recipeRepo.deleteById(recipeId);
+  } catch (error) {
+    throw new ConflictError(
+      'The recipe cannot be deleted because it is referenced by another resource.'
+    );
+  }
 }
