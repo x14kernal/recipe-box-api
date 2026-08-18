@@ -11,7 +11,7 @@ const adapter = new PrismaPg({
 
 export const prisma = new PrismaClient({
   adapter,
-  log: ['query'],
+  // log: ['query'],
   transactionOptions: {
     maxWait: 10_000,
     timeout: 10_000,

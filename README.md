@@ -13,12 +13,14 @@ The API lets you:
 - Search recipes by ingredient
 - Paginate recipe results
 - Get a random recipe
+- Sign up for a new account
+- Log in to an existing account
 - Store recipes in PostgreSQL
 - Manage recipe tags with a many-to-many relationship
 
 ## Live Demo
 
-**Demo URL:** https://recipe-box-api-x-azure.vercel.app/
+**Demo URL:** <https://recipe-box-api-x-azure.vercel.app/>
 
 The API is deployed on **Vercel** and uses **Neon PostgreSQL** for persistent database storage.
 
@@ -48,6 +50,8 @@ The deployed API supports the same recipe functionality as the local API because
 | POST   | `/api/recipes`        | Create a recipe                                    |  ✅   |    ✅     |
 | PATCH  | `/api/recipes/:id`    | Update a recipe                                    |  ✅   |    ✅     |
 | DELETE | `/api/recipes/:id`    | Delete a recipe                                    |  ✅   |    ✅     |
+| POST   | `/api/auth/signup`    | Sign up for a new account                          |  ✅   |    ✅     |
+| POST   | `/api/auth/login`     | Log in to an existing account                      |  ✅   |    ✅     |
 
 ## Query Parameters
 
@@ -133,6 +137,7 @@ GET http://localhost:3000/api/recipes/random
 
 ```http
 POST http://localhost:3000/api/recipes
+Authorization: Bearer YOUR_ACCESS_TOKEN
 Content-Type: application/json
 
 {
@@ -157,6 +162,7 @@ Content-Type: application/json
 
 ```http
 PATCH http://localhost:3000/api/recipes/10000000-0000-0000-0000-000000000001
+Authorization: Bearer YOUR_ACCESS_TOKEN
 Content-Type: application/json
 
 {
@@ -182,6 +188,43 @@ Content-Type: application/json
 
 ```http
 DELETE http://localhost:3000/api/recipes/10000000-0000-0000-0000-000000000004
+Authorization: Bearer YOUR_ACCESS_TOKEN
+```
+
+### Sign up for a new account
+
+```http
+POST http://localhost:3000/api/auth/signup
+Content-Type: application/json
+
+{
+  "email": "muhammed@example.com",
+  "password": "password$"
+}
+```
+
+### Log in
+
+```http
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "heba@example.com",
+  "password": "password"
+}
+```
+
+### Log in with invalid credentials
+
+```http
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "heba@example.com",
+  "password": "wrong-password"
+}
 ```
 
 ## Database
@@ -201,14 +244,17 @@ Recipe tags are provided as tag names by the API and existing tags are reused wh
 
 The `Recipe.userId` field is indexed for efficient lookups by user.
 
+The `/api/auth/signup` and `/api/auth/login` endpoints create and check rows in the `User` table.
+
 ## Environment Variables
 
 Create a `.env` file in the project root:
 
 ```env
 PORT=3000
+NODE_ENV={"development" | "production"}
 DATABASE_URL="your-neon-pooled-connection-string"
-DIRECT_URL="your-neon-direct-connection-string"
+JWT_SECRET="your-jwt-secret"
 ```
 
 Do not commit the `.env` file to Git.
@@ -262,7 +308,8 @@ pnpm install
 
 ### 3. Configure environment variables
 
-Create `.env` with the required `PORT`, and `DATABASE_URL` values.
+Check `.env.example`.
+Create your `.env`.
 
 Do not commit the `.env` file to Git.
 
@@ -300,13 +347,14 @@ Seed data is managed through `prisma/seed.ts`.
 
 The API validates recipe data before creating or updating a recipe.
 
-| Status | Description                      |
-| ------ | -------------------------------- |
-| `201`  | Recipe created successfully      |
-| `204`  | Recipe deleted successfully      |
-| `400`  | Invalid request data             |
-| `403`  | Delete is disabled in production |
-| `404`  | Recipe not found                 |
+| Status | Description                                                       |
+| ------ | ----------------------------------------------------------------- |
+| `201`  | Recipe created successfully                                       |
+| `204`  | Recipe deleted successfully                                       |
+| `400`  | Invalid request data                                              |
+| `401`  | Missing or invalid authentication credentials                     |
+| `404`  | Recipe not found                                                  |
+| `409`  | Cannot delete recipe because it is referenced by another resource |
 
 ## Nice-to-Have Features
 
@@ -316,6 +364,7 @@ Implemented features:
 - ✅ Search by ingredient
 - ✅ Pagination
 - ✅ Combined tag and ingredient filtering
+- ✅ User signup and login
 
 ## Definition of Done
 

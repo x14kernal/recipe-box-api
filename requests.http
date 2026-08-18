@@ -66,4 +66,40 @@ Content-Type: application/json
 }
 
 ### Delete recipe with id=19
-DELETE http://localhost:3000/api/recipes/10000000-0000-0000-0000-000000000004
+DELETE http://localhost:3000/api/recipes/d210d680-cb30-46f2-9ed8-5e5f0714d7fc
+
+### Signup
+POST http://localhost:3000/api/auth/signup
+Content-Type: application/json
+
+{
+  "email": "muhammed@example.com",
+  "password": "password$"
+}
+
+### Login
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "heba@example.com",
+  "password": "password"
+}
+
+### Login with invalid email
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "heb@example.com",
+  "password": "password"
+}
+
+### Login with invalid password
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "heb@example.com",
+  "password": "invalid-password"
+}
