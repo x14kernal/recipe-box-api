@@ -16,7 +16,7 @@ export async function getAllRecipes(req: Request, res: Response) {
   params.set('limit', String(limit));
 
   const { prev, next } = buildPaginationLinks(
-    req.baseUrl,
+    '/recipes',
     page,
     data.totalPages,
     params
@@ -105,7 +105,7 @@ function parseRecipeQuery(query: Request['query']) {
 }
 
 function buildPaginationLinks(
-  baseUrl: string,
+  path: string,
   page: number,
   totalPages: number,
   params: URLSearchParams
@@ -116,13 +116,13 @@ function buildPaginationLinks(
   if (page < totalPages) {
     const nextParams = new URLSearchParams(params);
     nextParams.set('page', String(page + 1));
-    next = `${baseUrl}?${nextParams.toString()}`;
+    next = `${path}?${nextParams.toString()}`;
   }
 
   if (page > 1) {
     const prevParams = new URLSearchParams(params);
     prevParams.set('page', String(page - 1));
-    prev = `${baseUrl}?${prevParams.toString()}`;
+    prev = `${path}?${prevParams.toString()}`;
   }
 
   return { prev, next };
