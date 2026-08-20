@@ -15,7 +15,7 @@ app.use(logger);
 
 app.get('/', (req, res) => {
   const baseUrl = `${req.protocol}://${req.get('host')}`;
-  res.json({
+  return sendSuccess(res, {
     message: 'Recipe Box API',
     recipes: `${baseUrl}/api/recipes`,
   });

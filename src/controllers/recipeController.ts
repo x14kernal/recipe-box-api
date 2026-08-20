@@ -1,5 +1,11 @@
 import type { Request, Response } from 'express';
 import * as recipeService from '../services/recipeService.js';
+import {
+  sendNoContent,
+  sendSuccess,
+  sendSuccessWithMeta,
+} from '../utils/apiResponse.js';
+import type { PaginationMeta } from '../types/api.js';
 
 export async function getAllRecipes(req: Request, res: Response) {
   const { page, limit, ingredient, tag } = parseRecipeQuery(req.query);
@@ -22,19 +28,20 @@ export async function getAllRecipes(req: Request, res: Response) {
     params
   );
 
-  return res.json({
-    data: data.recipes,
+  const meta: PaginationMeta = {
     page,
     limit,
     total: data.total,
     prev,
     next,
-  });
+  };
+
+  return sendSuccessWithMeta(res, data.recipes, meta);
 }
 
 export async function getById(req: Request<{ id: string }>, res: Response) {
   const recipe = await recipeService.getOne(req.params.id);
-  return res.json(recipe);
+  return sendSuccess(res, recipe);
 }
 
 export async function createRecipe(req: Request, res: Response) {
@@ -42,8 +49,7 @@ export async function createRecipe(req: Request, res: Response) {
     recipe: req.body,
     userId: req.userId,
   });
-
-  return res.status(201).json({ success: true, data: recipe });
+  return sendSuccess(res, recipe, 201);
 }
 
 export async function updateRecipe(
@@ -55,11 +61,7 @@ export async function updateRecipe(
     recipe: req.body,
     userId: req.userId,
   });
-
-  return res.status(200).json({
-    success: true,
-    data: recipe,
-  });
+  return sendSuccess(res, recipe);
 }
 
 export async function deleteRecipe(
@@ -72,12 +74,12 @@ export async function deleteRecipe(
     recipeId: req.params.id,
     userId: req.userId,
   });
-  return res.status(204).send();
+  return sendNoContent(res);
 }
 
 export async function getRandomRecipe(req: Request, res: Response) {
   const recipe = await recipeService.getRandom();
-  return res.json(recipe);
+  return sendSuccess(res, recipe);
 }
 
 function parseRecipeQuery(query: Request['query']) {

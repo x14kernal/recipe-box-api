@@ -3,15 +3,15 @@ import type { User } from '../types/user.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
-import { AppError } from '../errors/AppError.js';
 import { UnauthorizedError } from '../errors/UnauthorizedError.js';
 
 import * as userRepo from '../repositories/userRepository.js';
+import { ConflictError } from '../errors/ConflictError.js';
 
 export async function checkEmailAvailable(email: string) {
   const user = await userRepo.findByEmail(email);
   if (user) {
-    throw new AppError('User with this email already exists.', 409);
+    throw new ConflictError('User with this email already exists');
   }
   return true;
 }
