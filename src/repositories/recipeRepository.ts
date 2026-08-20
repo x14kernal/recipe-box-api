@@ -1,4 +1,3 @@
-import type { Prisma } from '../generated/prisma/client.js';
 import { prisma } from '../lib/prisma.js';
 import type { CreateRecipe, UpdateRecipe } from '../types/recipe.js';
 import type { DbClient } from '../types/database.js';
