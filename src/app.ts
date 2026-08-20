@@ -5,7 +5,7 @@ import recipesRouter from './routes/recipe.js';
 import authRouter from './routes/auth.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 import logger from './middlewares/logger.js';
-import { requireAuth } from './middlewares/requireAuth.js';
+import { sendSuccess } from './utils/apiResponse.js';
 
 const app: Express = express();
 
@@ -15,7 +15,7 @@ app.use(logger);
 
 app.get('/', (req, res) => {
   const baseUrl = `${req.protocol}://${req.get('host')}`;
-  res.json({
+  return sendSuccess(res, {
     message: 'Recipe Box API',
     recipes: `${baseUrl}/api/recipes`,
   });
