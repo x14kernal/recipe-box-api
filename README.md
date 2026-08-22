@@ -52,6 +52,7 @@ The deployed API supports the same recipe functionality as the local API because
 | DELETE | `/api/recipes/:id`    | Delete a recipe                                    |  ✅   |    ✅     |
 | POST   | `/api/auth/signup`    | Sign up for a new account                          |  ✅   |    ✅     |
 | POST   | `/api/auth/login`     | Log in to an existing account                      |  ✅   |    ✅     |
+| GET    | `/api/auth/me`        | Get the currently authenticated user               |  ✅   |    ✅     |
 
 ## Query Parameters
 
@@ -215,6 +216,22 @@ Content-Type: application/json
 }
 ```
 
+### Get current authenticated user
+
+````http
+GET http://localhost:3000/api/auth/me
+Authorization: Bearer YOUR_ACCESS_TOKEN
+
+
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "email": "email"
+  }
+}
+```
+
 ### Log in with invalid credentials
 
 ```http
@@ -225,7 +242,7 @@ Content-Type: application/json
   "email": "heba@example.com",
   "password": "wrong-password"
 }
-```
+````
 
 ## Database
 

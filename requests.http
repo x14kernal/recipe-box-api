@@ -103,3 +103,7 @@ Content-Type: application/json
   "email": "heb@example.com",
   "password": "invalid-password"
 }
+
+### Get current authenticated user
+GET http://localhost:3000/api/auth/me
+Authorization: Bearer YOUR_TOKEN
