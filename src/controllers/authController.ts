@@ -14,3 +14,8 @@ export async function login(req: Request, res: Response) {
   const { user, token } = await userService.checkCredentials(req.body);
   return sendSuccess(res, { user, token });
 }
+
+export async function me(req: Request, res: Response) {
+  const user = await userService.getOne(req.userId);
+  return sendSuccess(res, user);
+}

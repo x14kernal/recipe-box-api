@@ -7,6 +7,16 @@ import { UnauthorizedError } from '../errors/UnauthorizedError.js';
 
 import * as userRepo from '../repositories/userRepository.js';
 import { ConflictError } from '../errors/ConflictError.js';
+import { NotFoundError } from '../errors/NotFoundError.js';
+
+export async function getOne(id: string) {
+  const user = await userRepo.findById(id);
+  if (!user) throw new NotFoundError('User not found');
+  return {
+    id: user.id,
+    email: user.email,
+  };
+}
 
 export async function checkEmailAvailable(email: string) {
   const user = await userRepo.findByEmail(email);
@@ -37,7 +47,7 @@ export async function checkCredentials({
   if (!isPasswordCorrect) throw new UnauthorizedError();
 
   const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET!, {
-    expiresIn: '1day',
+    expiresIn: '5m', // for testing, change it later
   });
 
   return { user: { id: user.id, email: user.email }, token };
