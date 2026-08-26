@@ -47,7 +47,7 @@ export async function checkCredentials({
   if (!isPasswordCorrect) throw new UnauthorizedError();
 
   const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET!, {
-    expiresIn: '5m', // for testing, change it later
+    expiresIn: '20m', // for testing, change it later
   });
 
   return { user: { id: user.id, email: user.email }, token };
