@@ -17,6 +17,7 @@ export const updateRecipeSchema = recipeFieldsSchema.partial().extend({
 });
 export const recipeSchema = recipeFieldsSchema.extend({
   id: z.string(),
+  ownerId: z.uuid(),
 });
 
 export type Recipe = z.infer<typeof recipeSchema>;

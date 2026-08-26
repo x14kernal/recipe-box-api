@@ -1,4 +1,4 @@
-import type { CreateRecipe, UpdateRecipe } from '../types/recipe.js';
+import type { CreateRecipe, Recipe, UpdateRecipe } from '../types/recipe.js';
 import { NotFoundError } from '../errors/NotFoundError.js';
 import { ForbiddenError } from '../errors/ForbiddenError.js';
 import { prisma } from '../lib/prisma.js';
@@ -8,11 +8,12 @@ import * as tagRepo from '../repositories/tagRepository.js';
 import * as recipeTagRepo from '../repositories/recipeTagRepository.js';
 import { ConflictError } from '../errors/ConflictError.js';
 
-export async function getOne(id: string) {
+export async function getOne(id: string): Promise<Recipe> {
   const recipe = await recipeRepo.findById(id);
   if (!recipe) throw new NotFoundError('Recipe not found');
   return {
     id: recipe.id,
+    ownerId: recipe.user_id,
     title: recipe.title,
     ingredients: recipe.ingredients,
     steps: recipe.steps,
@@ -42,8 +43,9 @@ export async function getMany({ page, limit, ingredient, tag }: GetManyParams) {
 
   if (total === 0) throw new NotFoundError('No match recipes');
 
-  const transformedRecipes = recipes.map((recipe) => ({
+  const transformedRecipes: Recipe[] = recipes.map((recipe) => ({
     id: recipe.id,
+    ownerId: recipe.user_id,
     title: recipe.title,
     ingredients: recipe.ingredients,
     steps: recipe.steps,
@@ -64,7 +66,10 @@ type CreateParams = {
   recipe: CreateRecipe;
   userId: string;
 };
-export async function createOne({ recipe, userId }: CreateParams) {
+export async function createOne({
+  recipe,
+  userId,
+}: CreateParams): Promise<Recipe> {
   return prisma.$transaction(async (tx) => {
     const tags = await tagRepo.create(recipe.tags, tx);
     const created = await recipeRepo.create({ recipe, userId }, tx);
@@ -78,6 +83,7 @@ export async function createOne({ recipe, userId }: CreateParams) {
 
     return {
       id: created.id,
+      ownerId: created.user_id,
       title: created.title,
       ingredients: created.ingredients,
       steps: created.steps,
@@ -98,6 +104,7 @@ export async function updateOne({ recipe, recipeId, userId }: UpdateParams) {
     if (!existing) {
       throw new NotFoundError('Recipe not found');
     }
+
     if (existing.user_id !== userId) {
       throw new ForbiddenError('You cannot update this recipe');
     }
@@ -122,6 +129,7 @@ export async function updateOne({ recipe, recipeId, userId }: UpdateParams) {
 
     return {
       id: updated.id,
+      ownerId: updated.user_id,
       title: updated.title,
       ingredients: updated.ingredients,
       steps: updated.steps,
