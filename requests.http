@@ -13,8 +13,8 @@ GET http://localhost:3000/api/recipes?ingredient=cilantro&tag=mexican
 ### Get recipes with tag 'not-exist'
 GET http://localhost:3000/api/recipes?tag=not-exist
 
-### Get recipe with id 10000000-0000-0000-0000-000000000001
-GET http://localhost:3000/api/recipes/10000000-0000-0000-0000-000000000001
+### Get recipe with id 30000000-0000-4000-8000-000000000019
+GET http://localhost:3000/api/recipes/30000000-0000-4000-8000-000000000019
 
 ### Get a random recipe
 GET http://localhost:3000/api/recipes/random
@@ -43,7 +43,7 @@ Content-Type: application/json
 }
 
 ### Update recipe with id=20
-PATCH  http://localhost:3000/api/recipes/10000000-0000-0000-0000-000000000001
+PATCH  http://localhost:3000/api/recipes/30000000-0000-4000-8000-000000000019
 Content-Type: application/json
 
 {
