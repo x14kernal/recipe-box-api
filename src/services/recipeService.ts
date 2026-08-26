@@ -1,4 +1,9 @@
-import type { CreateRecipe, Recipe, UpdateRecipe } from '../types/recipe.js';
+import {
+  idSchema,
+  type CreateRecipe,
+  type Recipe,
+  type UpdateRecipe,
+} from '../types/recipe.js';
 import { NotFoundError } from '../errors/NotFoundError.js';
 import { ForbiddenError } from '../errors/ForbiddenError.js';
 import { prisma } from '../lib/prisma.js';
@@ -7,10 +12,16 @@ import * as recipeRepo from '../repositories/recipeRepository.js';
 import * as tagRepo from '../repositories/tagRepository.js';
 import * as recipeTagRepo from '../repositories/recipeTagRepository.js';
 import { ConflictError } from '../errors/ConflictError.js';
+import z from 'zod';
 
 export async function getOne(id: string): Promise<Recipe> {
-  const recipe = await recipeRepo.findById(id);
+  const result = z.safeParse(idSchema, id);
+
+  if (!result.success) throw new NotFoundError('Recipe not found');
+
+  const recipe = await recipeRepo.findById(result.data);
   if (!recipe) throw new NotFoundError('Recipe not found');
+
   return {
     id: recipe.id,
     ownerId: recipe.user_id,

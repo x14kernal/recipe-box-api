@@ -1,5 +1,4 @@
 import z from 'zod';
-
 const recipeFieldsSchema = z.object({
   title: z.string().min(4),
   ingredients: z
@@ -11,12 +10,11 @@ const recipeFieldsSchema = z.object({
   tags: z.array(z.string().min(3)),
 });
 
+export const idSchema = z.uuid();
 export const createRecipeSchema = recipeFieldsSchema;
-export const updateRecipeSchema = recipeFieldsSchema.partial().extend({
-  user_id: z.string(), // for now till auth
-});
+export const updateRecipeSchema = recipeFieldsSchema.partial();
 export const recipeSchema = recipeFieldsSchema.extend({
-  id: z.string(),
+  id: z.uuid(),
   ownerId: z.uuid(),
 });
 
