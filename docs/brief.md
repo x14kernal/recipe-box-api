@@ -1,213 +1,239 @@
-# Project brief
+# Recipe App — Requirements Brief
 
-## Recipe Box API v1
+## Problem
 
-**Problem it solves:** lets someone store, organize, and search their own recipes through a clean API — the foundation for a bigger app you'll build across the next 3 phases.
+People keep recipes in many places. Some are in notebooks. Some are photos. Some are on websites. It is hard to find them again.
 
-**Must-have features:**
+The Recipe App gives users one place for their recipes. Users can create recipes, edit recipes, and find recipes. Users can also share recipes with other people.
 
-1. List all recipes (`GET /api/recipes`).
-2. Get one recipe by ID (`GET /api/recipes/:id`).
-3. Create a recipe, with validation (`POST /api/recipes`).
-4. Update a recipe (`PUT /api/recipes/:id`).
-5. Delete a recipe (`DELETE /api/recipes/:id`).
-6. Filter recipes by tag using a query parameter.
-7. Data survives a server restart (saved to a JSON file).
-8. Bad input is rejected with a clear `400` error, not a crash.
+## Must-have Features
 
-**Nice-to-have features:**
+1. Users can create an account. Users can log in and log out.
+2. Users can create, edit, and delete their own recipes.
+3. A recipe has a title, a description, ingredients, and steps. The steps are in order.
+4. Users can add pictures to a recipe. Users can add a picture to each step.
+5. Users can add tags to a recipe.
+6. Users can make a recipe public or private.
+7. Guests can look at public recipes. Guests do not need an account.
+8. Users can search recipes by title. Users can search recipes by ingredient.
+9. Users can filter recipes by tag.
+10. Users can change the recipe size. The app changes the ingredient amounts too.
+11. Users can save a public recipe. Users can remove a saved recipe.
+12. Users can see their saved recipes.
+13. Users can see recipes they deleted. Users can get a deleted recipe back.
+14. Users can log in on many devices at the same time. Users can see and manage these devices.
+15. Users can share a public recipe with other people.
 
-- A random-recipe endpoint.
-- Search by ingredient name.
-- Pagination on the list endpoint.
+## Out of Scope for v1
 
-**Route outline:**
+We will not build these features now:
 
-| Method | Path               | Description                         |
-| ------ | ------------------ | ----------------------------------- |
-| GET    | `/api/recipes`     | List all recipes (supports `?tag=`) |
-| GET    | `/api/recipes/:id` | Get one recipe                      |
-| POST   | `/api/recipes`     | Create a recipe                     |
-| PUT    | `/api/recipes/:id` | Update a recipe                     |
-| DELETE | `/api/recipes/:id` | Delete a recipe                     |
+- Folders for saved recipes
+- Reports about how often a user cooks a recipe
+- Special share cards for social media
+- Smart recipe suggestions based on ingredients a user has
 
-**Data shape:**
+## Definition of Done
 
-```ts
-interface Recipe {
-  id: string;
-  title: string;
-  ingredients: string[];
-  steps: string[];
-  tags: string[];
+- [ ] Users can create an account, log in, and log out.
+- [ ] Users can create, edit, and delete only their own recipes.
+- [ ] Users can add ingredients, steps, tags, and pictures to a recipe.
+- [ ] Guests can see public recipes.
+- [ ] Only the owner can see a private recipe.
+- [ ] Users can search recipes by title and ingredient. Users can filter recipes by tag.
+- [ ] Ingredient amounts change correctly when the recipe size changes.
+- [ ] A user cannot save the same recipe two times.
+- [ ] Users can see and remove their saved recipes.
+- [ ] Users can get a deleted recipe back. This works only for a short time after delete.
+- [ ] Users can see and manage their active sessions.
+- [ ] Every API answer has the same shape.
+
+## Hard Requirement
+
+### Recipe Ownership and Visibility
+
+Only the right person can see or change a recipe. This rule is important.
+
+This is hard because every part of the app must check the rule. This means search, lists, and single recipe pages all need the check — not just one place.
+
+A private recipe must stay hidden from other users. It must not appear in search. It must not appear in any list. Other users cannot open it, even with a direct link.
+
+## Entities & Relationships
+
+- **User** — an account. Fields: `email`, `username`, `display_name`, `hashed_password`. One user can have many recipes, many sessions, and many bookmarks.
+- **Session** (`user_session`) — one login on one device. Fields: `session_token_hash`, `expires_at`, `last_seen_at`, `ip_address`, `user_agent`. One session belongs to one user.
+- **Recipe** — belongs to one user (the owner). Fields: `title`, `visibility`, `status`, `serving_size`, `deleted_at`. `deleted_at` marks a soft delete. One recipe can have many steps, many images, and many bookmarks. A recipe can also have many ingredients and many tags.
+- **Recipe Step** (`recipe_step`) — belongs to one recipe. Fields: `position`, `description`, optional `image_url`. `(recipe_id, position)` is unique, so every step has one clear place in the order.
+- **Recipe Image** (`recipe_image`) — belongs to one recipe. Field: `image_url`. There is no `position` field yet, so images have no fixed order right now (a known gap from the ERD review).
+- **Ingredient** — a shared item, not owned by one recipe. Fields: `name` (unique), `image_url`. Many recipes can use the same ingredient.
+- **Recipe Ingredient** (`recipe_ingredient`) — connects a recipe and an ingredient. Fields: `quantity`, `unit`. `(recipe_id, ingredient_id)` is unique.
+- **Tag** — a shared label. Fields: `name`, `slug`. Many recipes can use the same tag.
+- **Recipe Tag** (`recipe_tag`) — connects a recipe and a tag. `(recipe_id, tag_id)` is unique.
+- **Bookmark** (`user_bookmark`) — connects a user and a recipe they saved. `(recipe_id, user_id)` is unique.
+
+In short: one user has many recipes, sessions, and bookmarks. One recipe has many steps and images. A recipe connects to many ingredients and many tags through the connector tables above.
+
+## Data Integrity
+
+- Every recipe must have one owner. The field `recipes.user_id` is required.
+- Steps, images, and the recipe's ingredient and tag links all belong to one recipe. When a recipe is soft-deleted, these are deleted too.
+- Ingredients and tags are shared. When a recipe is soft-deleted, only its links (`recipe_ingredient`, `recipe_tag`) are deleted. The ingredient or tag itself stays, because other recipes may still use it.
+- `(recipe_id, position)` is unique for steps. Two steps in the same recipe cannot have the same position.
+- `(recipe_id, ingredient_id)` is unique. `(recipe_id, tag_id)` is unique. A recipe cannot list the same ingredient or tag two times.
+- `(recipe_id, user_id)` is unique for bookmarks. A user cannot save the same recipe two times.
+- `ingredients.name` and `tags.name` are unique. The same ingredient or tag is never saved as two different rows.
+- A visibility change happens right away. Once a recipe is private, it stops showing in search and stops showing to anyone but the owner. If someone else already bookmarked it, the bookmark stays, but they can no longer open the recipe.
+- A soft-deleted recipe is hidden from normal use. Only the owner can see it, in the trash, until it is deleted for good after the recovery time.
+- A private recipe never appears in search results or in any list, except for its owner.
+
+## API Surface
+
+| Method | Path                    | Protected? | Description                                                                             |
+| ------ | ----------------------- | ---------- | --------------------------------------------------------------------------------------- |
+| POST   | `/auth/register`        | No         | Make a new account                                                                      |
+| POST   | `/auth/login`           | No         | Log in                                                                                  |
+| POST   | `/auth/logout`          | Yes        | Log out                                                                                 |
+| GET    | `/recipes`              | No         | Look at and search public recipes                                                       |
+| GET    | `/recipes/:id`          | Depends    | Get one recipe. Everyone can see a public recipe; only the owner can see a private one. |
+| POST   | `/recipes`              | Yes        | Make a new recipe, with its steps, ingredients, tags, and images                        |
+| PATCH  | `/recipes/:id`          | Yes        | Edit a recipe, including its steps, ingredients, tags, and images                       |
+| DELETE | `/recipes/:id`          | Yes        | Delete a recipe                                                                         |
+| GET    | `/recipes/mine`         | Yes        | See your own recipes                                                                    |
+| GET    | `/recipes/trash`        | Yes        | See your deleted recipes                                                                |
+| POST   | `/recipes/:id/restore`  | Yes        | Get a deleted recipe back                                                               |
+| POST   | `/recipes/:id/bookmark` | Yes        | Save a recipe                                                                           |
+| DELETE | `/recipes/:id/bookmark` | Yes        | Remove a saved recipe                                                                   |
+| GET    | `/bookmarks`            | Yes        | See your saved recipes                                                                  |
+| GET    | `/sessions`             | Yes        | See your active sessions                                                                |
+| DELETE | `/sessions/:id`         | Yes        | Log out from one session                                                                |
+
+There is no separate endpoint for images. Images are part of the recipe data. They go in with `POST /recipes` when a recipe is created, and with `PATCH /recipes/:id` when a recipe is edited.
+
+## Response Envelope
+
+Every API response follows a consistent structure, known as the response envelope.
+
+The `success` field indicates whether the request was successful:
+
+- When `success` is `true`, the response contains a `data` field and optional `meta` information.
+- When `success` is `false`, the response contains an `error` object describing the failure.
+
+### Success Response
+
+A successful response contains the requested data. The `data` field may contain either a single object or a collection of objects.
+
+```json
+{
+  "success": true,
+  "data": {},
+  "meta": {}
 }
 ```
 
-**Definition of Done:**
+For collection responses:
 
-- [x] All 5 core routes work and return the correct status codes.
-- [x] Invalid input (e.g. missing title) returns a `400`, not a crash.
-- [x] Requesting a recipe ID that doesn't exist returns a `404`, not a crash or a `200` with empty data.
-- [x] Data survives a server restart.
-- [x] `.env` is used for configuration and is not committed to Git.
-- [~] API is deployed and reachable at a public URL.
-- [x] README lists every endpoint with an example request.
+```json
+{
+  "success": true,
+  "data": [],
+  "meta": {}
+}
+```
 
-## Recipe Box API v2
+The `meta` field can be used for additional response metadata, such as pagination information.
 
-**Problem it solves:** the same recipe tool as v1, but now the data is stored in a real, structured PostgreSQL database instead of a JSON file. Tags are stored consistently, and the relational design prepares the project for real user accounts in Phase 4.
+For `DELETE` requests, `data` is `null` — the `success` flag alone confirms the deletion.
 
-**Must-have features:**
+```json
+{
+  "success": true,
+  "data": null,
+  "meta": {}
+}
+```
 
-1. `User`, `Recipe`, `Tag`, and `RecipeTag` exist as real PostgreSQL tables.
-2. The relational database is designed by hand before using Prisma.
-3. The initial database schema is created using raw SQL.
-4. A `User` can have many `Recipe` records through `Recipe.userId`.
-5. A `Recipe` can have many `Tag` records, and a `Tag` can belong to many recipes through the `RecipeTag` join table.
-6. Existing tag names are reused instead of creating duplicate tags.
-7. New tag names create new tags.
-8. The JSON-file data layer is replaced with Prisma and PostgreSQL.
-9. Prisma migrations are used to manage database schema changes.
-10. An index exists on `Recipe.userId`.
-11. All existing Phase 2 API functionality continues to work correctly against the PostgreSQL database:
-    - CRUD operations.
-    - Tag filtering.
-    - Ingredient search.
-    - Pagination.
-    - Random recipe.
+### Error Response
 
-**Relational model:**
+A failed response contains an `error` object with a machine-readable error code, a human-readable message, and optional additional details.
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "User not found",
+    "details": null
+  }
+}
+```
+
+When additional error information is available, `details` can contain a structured object:
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "The request contains invalid fields.",
+    "details": {
+      "email": "Invalid email address",
+      "password": "Password is required"
+    }
+  }
+}
+```
+
+### Response Contract
+
+The response envelope follows these rules:
+
+| `success` | `data`      | `meta`      | `error`     |
+| --------- | ----------- | ----------- | ----------- |
+| `true`    | Required    | Optional    | Not present |
+| `false`   | Not present | Not present | Required    |
+
+The `success` field acts as the discriminator between successful and failed responses. A response contains either `data` or `error`, never both.
+
+### Helper Functions
+
+Every controller uses one of these two functions. This keeps the response shape the same everywhere:
+
+```ts
+sendSuccess(res, data);
+sendError(res, status, message);
+```
+
+### Owned Resource Rule
+
+If a user can own something — a recipe or a bookmark — the answer includes `isOwner`. This is `true` or `false`. It tells the app if this user is the owner, so the app knows whether to show buttons like edit, delete, or change visibility.
+
+## Backend Architecture
+
+The app has four layers. Each layer has one job.
 
 ```text
-User (1) ─────< Recipe (many)
-
-Recipe (many) ─────< RecipeTag >───── Tag (many)
+routes/
+    ↓
+controllers/
+    ↓
+services/
+    ↓
+repos/
 ```
 
-**Definition of Done:**
+## Layer Responsibilities
 
-- [x] ER diagram is created and saved in docs/er-diagram.png.
-- [x] The relational design correctly represents User → Recipe as one-to-many.
-- [x] The relational design correctly represents Recipe ↔ Tag as many-to-many through RecipeTag.
-- [x] The reason for using a separate Tag table is documented in docs/brief.md.
-- [x] PostgreSQL contains the required users, recipes, tags, and recipe_tags tables.
-- [x] I can write a basic SELECT query with WHERE, ORDER BY, and LIMIT from memory.
-- [x] I can write a basic JOIN query from memory.
-- [x] I can write a GROUP BY query with an aggregate function such as COUNT.
-- [x] I have used EXPLAIN or EXPLAIN ANALYZE and can explain what an index changes.
-- [x] prisma/schema.prisma matches the relational design.
-- [x] At least one Prisma migration exists in prisma/migrations/ and is committed to Git.
-- [x] A seed script creates connected sample data.
-- [x] The API uses Prisma instead of the JSON-file storage layer.
-- [x] `recipes.json` and the old file-based storage functions are removed.
-- [x] All Phase 2 API functionality works correctly against PostgreSQL.
-- [x] The same tag used by multiple recipes is stored only once in the Tag table.
-- [ ] An index exists on Recipe.userId.
-- [x] README is updated with the PostgreSQL, Prisma, and database setup instructions.
-- [x] The deployed API's writes are verified to persist correctly with the real database.
+- routes: connects one URL and one HTTP method to one controller function. No business logic here.
+- controllers: reads and checks the request, calls the right service, and sends the answer with `sendSuccess` or `sendError`. It does not touch the database directly.
+- services: holds the business rules — who owns a recipe, who can see it, how to scale ingredients, how to check data. It does not know about HTTP.
+- repos: the only layer that talks to the database. It gives simple read and write actions to the services. It does not know about HTTP or business rules.
 
-### Entities
+## Authentication & Authorization
 
-```text
-User
-- id
-- email
-- passwordHash
-- createdAt
+Users log in with an email and a password. This starts a session for one device. Every protected route checks this session to know who is asking.
 
-Recipe
-- id
-- title
-- ingredients
-- steps
-- createdAt
-- userId
+Access rules are based on ownership, not on roles. Any logged-in user can create a recipe. But only the owner can edit, delete, restore, or change the visibility of their own recipe.
 
-Tag
-- id
-- name
+Visibility controls who can read a recipe. Everyone can read a public recipe, even guests with no session. Only the owner can read a private recipe.
 
-RecipeTag
-- recipeId
-- tagId
-```
-
-### Notes
-
-#### Why use a separate Tag table?
-
-Because many recipes can use the same tag.
-
-Instead of storing:
-
-```text
-Recipe
-- tags: ["vegan", "quick"]
-```
-
-we store tags separately:
-
-```mermaid
-erDiagram
-    RECIPE {
-        string id
-        string title
-    }
-
-    TAG {
-        string id
-        string name
-    }
-
-    RECIPE_TAG {
-        string recipeId
-        string tagId
-    }
-
-    RECIPE ||--o{ RECIPE_TAG : has
-    TAG ||--o{ RECIPE_TAG : used_by
-```
-
-> We use a separate Tag table so tags can be reused consistently across many recipes, with RecipeTag connecting recipes and tags.
-
-## Recipe Box API v3
-
-**Problem it solves:** the same recipe tool, but now each person has their own private, secure collection — a real web app anyone can use, not just something you test with Thunder Client.
-
-**Must-have features:**
-
-1. A visitor can sign up with an email and password.
-2. A registered user can log in, and stays logged in after refreshing the page.
-3. A logged-in user can create, edit, and delete only their own recipes.
-4. All recipes are visible to everyone (read-only) whether logged in or not — but only the owner sees edit/delete controls.
-5. Passwords are hashed with `bcryptjs`, never stored as plain text.
-6. The frontend shows correct loading, error, and empty states for every network call.
-7. The frontend and backend are both deployed, and correctly connected, in production.
-
-**Nice-to-have features:**
-
-- A working "log out" that fully clears the session.
-- A friendly error message (not a raw server error) when login fails.
-- After logging in, redirect back to the page the user was originally trying to reach.
-
-**Route outline (new since Phase 3):**
-
-| Method | Path               | Protected?      | Description                     |
-| ------ | ------------------ | --------------- | ------------------------------- |
-| POST   | `/api/auth/signup` | No              | Create an account               |
-| POST   | `/api/auth/login`  | No              | Get a token                     |
-| GET    | `/api/recipes`     | No              | List all recipes                |
-| GET    | `/api/recipes/:id` | No              | Get one recipe                  |
-| POST   | `/api/recipes`     | Yes             | Create (owner = logged-in user) |
-| PUT    | `/api/recipes/:id` | Yes, owner only | Update                          |
-| DELETE | `/api/recipes/:id` | Yes, owner only | Delete                          |
-
-**Definition of Done:**
-
-- [ ] Signup creates a user with a hashed password (check this directly in Prisma Studio — you should never see a real password there).
-- [ ] Login returns a working token; wrong credentials return `401`.
-- [ ] A logged-out visitor can browse recipes, but sees no edit/delete buttons anywhere.
-- [ ] Create two test accounts. Confirm, by hand, that Account A cannot edit or delete Account B's recipe.
-- [ ] Refreshing the page keeps a logged-in user logged in.
-- [ ] Frontend and backend are both deployed and working together at their live links.
-- [ ] Both READMEs updated to describe the full-stack, connected setup.
+Every protected route checks two things before it sends any data: who is asking, and — when it matters — whether they own the recipe.
