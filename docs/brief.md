@@ -60,6 +60,99 @@ A private recipe must stay hidden from other users. It must not appear in search
 
 ## Entities & Relationships
 
+```mermaid
+erDiagram
+  USERS ||--o{ USER_SESSION : has
+  USERS ||--o{ USER_BOOKMARK : saves
+  USERS ||--o{ RECIPES : owns
+  RECIPES ||--o{ USER_BOOKMARK : saved_by
+  RECIPES ||--o{ RECIPE_IMAGE : has
+  RECIPES ||--o{ RECIPE_STEP : has
+  RECIPES ||--o{ RECIPE_TAG : tagged
+  TAGS ||--o{ RECIPE_TAG : tags
+  RECIPES ||--o{ RECIPE_INGREDIENT : uses
+  INGREDIENTS ||--o{ RECIPE_INGREDIENT : used_in
+
+  USERS {
+    uuid id PK
+    string email UK
+    string username UK
+    string display_name
+    string password_hash
+    datetime created_at
+    datetime updated_at
+  }
+  USER_SESSION {
+    uuid id PK
+    uuid user_id FK
+    string session_token_hash UK
+    string ip_address
+    string user_agent
+    datetime expires_at
+    datetime created_at
+    datetime updated_at
+    datetime last_seen_at
+  }
+  USER_BOOKMARK {
+    uuid id PK
+    uuid user_id FK
+    uuid recipe_id FK
+    datetime created_at
+    datetime updated_at
+  }
+  RECIPES {
+    uuid id PK
+    uuid user_id FK
+    string title
+    int serving_size
+    string visibility
+    datetime created_at
+    datetime updated_at
+    datetime deleted_at
+  }
+  RECIPE_IMAGE {
+    uuid id PK
+    uuid recipe_id FK
+    string image_url
+    datetime created_at
+    datetime updated_at
+  }
+  RECIPE_STEP {
+    uuid id PK
+    uuid recipe_id FK
+    int position
+    string description
+    string image_url
+    datetime created_at
+    datetime updated_at
+  }
+  TAGS {
+    uuid id PK
+    string name UK
+    string slug UK
+    datetime created_at
+    datetime updated_at
+  }
+  INGREDIENTS {
+    uuid id PK
+    string name UK
+    string image_url
+    datetime created_at
+    datetime updated_at
+  }
+  RECIPE_TAG {
+    uuid recipe_id PK, FK
+    uuid tag_id PK, FK
+  }
+  RECIPE_INGREDIENT {
+    uuid id PK
+    uuid recipe_id FK
+    uuid ingredient_id FK
+    decimal quantity
+    string unit
+  }
+```
+
 - **User** — an account. Fields: `email`, `username`, `display_name`, `hashed_password`. One user can have many recipes, many sessions, and many bookmarks.
 - **Session** (`user_session`) — one login on one device. Fields: `session_token_hash`, `expires_at`, `last_seen_at`, `ip_address`, `user_agent`. One session belongs to one user.
 - **Recipe** — belongs to one user (the owner). Fields: `title`, `visibility`, `status`, `serving_size`, `deleted_at`. `deleted_at` marks a soft delete. One recipe can have many steps, many images, and many bookmarks. A recipe can also have many ingredients and many tags.
