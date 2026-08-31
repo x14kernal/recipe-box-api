@@ -7,38 +7,160 @@ datasource db {
   provider = "postgresql"
 }
 
-model recipe_tags {
-  recipe_id String @db.Uuid
-  tag_id    String @db.Uuid
-  recipes   recipes @relation(fields: [recipe_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  tags      tags    @relation(fields: [tag_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-
-  @@id([recipe_id, tag_id])
-}
-
-model recipes {
-  id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  title       String
-  ingredients String[]
-  steps       String[]
-  created_at  DateTime      @default(now()) @db.Timestamp(6)
-  user_id     String        @db.Uuid
-  recipe_tags recipe_tags[]
-  users       users         @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-
-  @@index([user_id])
-}
-
-model tags {
-  id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name        String        @unique
-  recipe_tags recipe_tags[]
-}
-
-model users {
+model User {
   id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   email         String    @unique
+  username      String    @unique
+  display_name  String?
   password_hash String
   created_at    DateTime @default(now()) @db.Timestamp(6)
-  recipes       recipes[]
+  updated_at    DateTime @updatedAt @db.Timestamp(6)
+  recipes       Recipe[]
+  userSessions  UserSession[]
+  userBookmarks UserBookmark[]
+
+  @@map("users")
+}
+
+model UserSession {
+  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id             String    @db.Uuid
+  session_token_hash  String    @unique
+  ip_address          String?   @db.Inet
+  user_agent          String?
+  expires_at          DateTime @db.Timestamp(6)
+  created_at          DateTime @default(now()) @db.Timestamp(6)
+  updated_at          DateTime @updatedAt @db.Timestamp(6)
+  last_seen_at        DateTime @default(now()) @db.Timestamp(6)
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([user_id])
+  @@index([expires_at])
+  @@index([user_id, expires_at])
+  @@map("user_session")
+}
+
+model UserBookmark {
+  id          String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id     String @db.Uuid
+  recipe_id   String @db.Uuid
+  created_at  DateTime @default(now()) @db.Timestamp(6)
+  updated_at  DateTime @updatedAt @db.Timestamp(6)
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  recipe Recipe @relation(fields: [recipe_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([user_id,recipe_id])
+  @@index([user_id])
+  @@map("user_bookmark")
+}
+
+enum RecipeVisibility {
+  public
+  private
+}
+
+model Recipe {
+  id                String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id           String              @db.Uuid
+  title             String
+  serving_size      Int
+  visibility        RecipeVisibility
+  created_at        DateTime            @default(now()) @db.Timestamp(6)
+  updated_at        DateTime            @updatedAt @db.Timestamp(6)
+  deleted_at        DateTime?           @db.Timestamp(6)
+
+  recipeIngredient  RecipeIngredient[]
+  recipeImage       RecipeImage[]
+  recipeStep        RecipeStep[]
+  recipeTag         RecipeTag[]
+  userBookmarks     UserBookmark[]
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([user_id])
+  @@index([visibility, deleted_at])
+  @@map("recipes")
+}
+
+model RecipeImage {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  recipe_id         String   @db.Uuid
+  image_url         String
+  created_at        DateTime @default(now()) @db.Timestamp(6)
+  updated_at        DateTime @updatedAt @db.Timestamp(6)
+ 
+  recipe Recipe @relation(fields: [recipe_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  
+  @@index([recipe_id])
+  @@map("recipe_image")
+}
+
+model RecipeStep {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  recipe_id         String   @db.Uuid
+  position          Int
+  description       String
+  image_url         String?
+  created_at        DateTime @default(now()) @db.Timestamp(6)
+  updated_at        DateTime @updatedAt @db.Timestamp(6)
+ 
+  recipe Recipe @relation(fields: [recipe_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  
+  @@unique([recipe_id, position])
+  @@index([recipe_id])
+  @@map("recipe_step")
+}
+
+model Tag {
+  id          String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String      @unique
+  slug        String      @unique
+  created_at  DateTime    @default(now()) @db.Timestamp(6)
+  updated_at  DateTime    @updatedAt @db.Timestamp(6)
+
+  recipeTag RecipeTag[]
+  @@map("tags")
+}
+
+model Ingredient {
+  id                String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name              String      @unique
+  image_url         String?      
+  created_at        DateTime    @default(now()) @db.Timestamp(6)
+  updated_at        DateTime    @updatedAt @db.Timestamp(6)
+
+  recipeIngredient RecipeIngredient[]
+
+  @@map("ingredients")
+}
+
+model RecipeTag {
+  recipe_id String @db.Uuid
+  tag_id    String @db.Uuid
+
+  recipe Recipe @relation(fields: [recipe_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  tag Tag @relation(fields: [tag_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([recipe_id, tag_id])
+  @@index([tag_id])
+  @@map("recipe_tag")
+}
+
+model RecipeIngredient {
+  id                String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  quantity          Decimal     @db.Decimal(10, 3)
+  unit              String
+  recipe_id         String      @db.Uuid
+  ingredient_id     String      @db.Uuid
+
+  recipe Recipe @relation(fields: [recipe_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  ingredient Ingredient @relation(fields: [ingredient_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([recipe_id, ingredient_id])
+  @@index([recipe_id])
+  @@index([ingredient_id])
+
+  @@map("recipe_ingredient")
 }
