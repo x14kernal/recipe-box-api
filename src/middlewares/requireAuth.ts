@@ -1,26 +1,15 @@
 import type { RequestHandler } from 'express';
-import { UnauthorizedError } from '../errors/UnauthorizedError.js';
-import jwt from 'jsonwebtoken';
+import { validateSession } from '../services/sessionService.js';
+import { UnauthorizedError } from '../errors/index.js';
 
-export const requireAuth: RequestHandler = (req, res, next) => {
-  const authHeader = req.headers.authorization;
+export const requireAuth: RequestHandler = async (req, _, next) => {
+  const token = req.cookies.session;
+  if (typeof token !== 'string') throw new UnauthorizedError('Not allowed');
 
-  if (!authHeader) throw new UnauthorizedError('Not allowed');
+  const session = await validateSession(token);
 
-  const [scheme, token] = authHeader.split(' ');
-  if (scheme !== 'Bearer' || !token) {
-    throw new UnauthorizedError('Not allowed');
-  }
+  req.userId = session.user_id;
+  req.sessionId = session.id;
 
-  try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET!);
-
-    if (typeof payload === 'string' || !payload.userId)
-      throw new UnauthorizedError('Not allowed');
-
-    req.userId = payload.userId;
-    next();
-  } catch {
-    throw new UnauthorizedError('Not allowed');
-  }
+  next();
 };

@@ -1,19 +1,20 @@
 import z from 'zod';
 
-const userFieldsSchema = z.object({
+const userBaseSchema = z.object({
   email: z.email().trim().toLowerCase(),
+  username: z.string().trim().toLowerCase(),
+  displayName: z.string().trim().toLowerCase().nullable(),
 });
 
-export const signupSchema = userFieldsSchema.extend({
-  password: z.string().min(8).max(24),
-});
-export const loginSchema = userFieldsSchema.extend({
+export const registerSchema = userBaseSchema.extend({ password: z.string().min(8).max(24) });
+
+export const loginSchema = z.object({
+  identifier: z.string().trim().toLowerCase(),
   password: z.string().min(8).max(24),
 });
 
-export const userSchema = userFieldsSchema.extend({
-  id: z.uuid(),
-});
+export const userSchema = userBaseSchema.extend({ id: z.uuid() });
 
 export type User = z.infer<typeof userSchema>;
-export type CreateUser = z.infer<typeof signupSchema>;
+export type RegisterUserInput = z.infer<typeof registerSchema>;
+export type LoginUserInput = z.infer<typeof loginSchema>;

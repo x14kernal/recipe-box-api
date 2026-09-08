@@ -1,46 +1,44 @@
 import type { Request, Response } from 'express';
+import { sendSuccessWithoutData, sendSuccess } from '../utils/apiResponse.js';
+import { sendRecipeListResponse } from '../utils/listResponse.js';
+import { parseRecipeQuery } from '../utils/recipeQuery.js';
+
 import * as recipeService from '../services/recipeService.js';
-import {
-  sendNoContent,
-  sendSuccess,
-  sendSuccessWithMeta,
-} from '../utils/apiResponse.js';
-import type { PaginationMeta } from '../types/api.js';
+import * as bookmarkService from '../services/bookmarkService.js';
 
 export async function getAllRecipes(req: Request, res: Response) {
-  const { page, limit, ingredient, tag } = parseRecipeQuery(req.query);
-  const data = await recipeService.getMany({
-    page,
-    limit,
-    ingredient,
-    tag,
-  });
+  const query = parseRecipeQuery(req.query);
+  const data = await recipeService.getMany(query);
+  return sendRecipeListResponse(res, data, query, '/recipes');
+}
 
-  const params = new URLSearchParams();
-  if (tag) params.set('tag', tag);
-  if (ingredient) params.set('ingredient', ingredient);
-  params.set('limit', String(limit));
+export async function getMyRecipes(req: Request, res: Response) {
+  const query = parseRecipeQuery(req.query);
+  const data = await recipeService.getMine(req.userId, query);
+  return sendRecipeListResponse(res, data, query, '/recipes/mine');
+}
+export async function getMyRecipeById(req: Request<{ id: string }>, res: Response) {
+  const recipe = await recipeService.getMyById(req.userId, req.params.id);
+  return sendSuccess(res, recipe);
+}
 
-  const { prev, next } = buildPaginationLinks(
-    '/recipes',
-    page,
-    data.totalPages,
-    params
-  );
-
-  const meta: PaginationMeta = {
-    page,
-    limit,
-    total: data.total,
-    prev,
-    next,
-  };
-
-  return sendSuccessWithMeta(res, data.recipes, meta);
+export async function getMyTrashedRecipes(req: Request, res: Response) {
+  const query = parseRecipeQuery(req.query);
+  const data = await recipeService.getTrash(req.userId, query);
+  return sendRecipeListResponse(res, data, query, '/recipes/trash');
+}
+export async function getTrashedById(req: Request<{ id: string }>, res: Response) {
+  const recipe = await recipeService.getTrashedById(req.userId, req.params.id);
+  return sendSuccess(res, recipe);
 }
 
 export async function getById(req: Request<{ id: string }>, res: Response) {
   const recipe = await recipeService.getOne(req.params.id);
+  return sendSuccess(res, recipe);
+}
+
+export async function getRandomRecipe(_: Request, res: Response) {
+  const recipe = await recipeService.getRandom();
   return sendSuccess(res, recipe);
 }
 
@@ -52,10 +50,7 @@ export async function createRecipe(req: Request, res: Response) {
   return sendSuccess(res, recipe, 201);
 }
 
-export async function updateRecipe(
-  req: Request<{ id: string }>,
-  res: Response
-) {
+export async function updateRecipe(req: Request<{ id: string }>, res: Response) {
   const recipe = await recipeService.updateOne({
     recipeId: req.params.id,
     recipe: req.body,
@@ -64,68 +59,33 @@ export async function updateRecipe(
   return sendSuccess(res, recipe);
 }
 
-export async function deleteRecipe(
-  req: Request<{ id: string }>,
-  res: Response
-) {
-  // TODO
-  // It doesnot work correctlly: "Foreign key constraint violated on the constraint"
+export async function deleteRecipe(req: Request<{ id: string }>, res: Response) {
   await recipeService.deleteOne({
     recipeId: req.params.id,
     userId: req.userId,
   });
-  return sendNoContent(res);
+  return sendSuccessWithoutData(res);
 }
 
-export async function getRandomRecipe(req: Request, res: Response) {
-  const recipe = await recipeService.getRandom();
-  return sendSuccess(res, recipe);
+export async function moveRecipeToTrash(req: Request<{ id: string }>, res: Response) {
+  await recipeService.moveToTrash({ userId: req.userId, recipeId: req.params.id });
+  return sendSuccessWithoutData(res);
 }
 
-function parseRecipeQuery(query: Request['query']) {
-  const pageParam = Number(query.page);
-  const limitParam = Number(query.limit);
-
-  const page = Number.isInteger(pageParam) && pageParam > 0 ? pageParam : 1;
-
-  const limit =
-    Number.isInteger(limitParam) && limitParam > 0 && limitParam <= 30
-      ? limitParam
-      : 10;
-
-  const ingredient =
-    typeof query.ingredient === 'string' ? query.ingredient : undefined;
-
-  const tag = typeof query.tag === 'string' ? query.tag : undefined;
-
-  return {
-    page,
-    limit,
-    ingredient,
-    tag,
-  };
+export async function restoreRecipeFromTrash(req: Request<{ id: string }>, res: Response) {
+  await recipeService.restoreFromTrash({
+    recipeId: req.params.id,
+    userId: req.userId,
+  });
+  return sendSuccessWithoutData(res);
 }
 
-function buildPaginationLinks(
-  path: string,
-  page: number,
-  totalPages: number,
-  params: URLSearchParams
-) {
-  let next = null;
-  let prev = null;
+export async function addToBookmarks(req: Request<{ id: string }>, res: Response) {
+  await bookmarkService.addBookmark({ userId: req.userId, recipeId: req.params.id });
+  return sendSuccessWithoutData(res);
+}
 
-  if (page < totalPages) {
-    const nextParams = new URLSearchParams(params);
-    nextParams.set('page', String(page + 1));
-    next = `${path}?${nextParams.toString()}`;
-  }
-
-  if (page > 1) {
-    const prevParams = new URLSearchParams(params);
-    prevParams.set('page', String(page - 1));
-    prev = `${path}?${prevParams.toString()}`;
-  }
-
-  return { prev, next };
+export async function removeFromBookmarks(req: Request<{ id: string }>, res: Response) {
+  await bookmarkService.deleteBookmark({ userId: req.userId, recipeId: req.params.id });
+  return sendSuccessWithoutData(res);
 }

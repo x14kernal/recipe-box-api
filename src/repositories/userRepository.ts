@@ -1,30 +1,35 @@
 import { prisma } from '../lib/prisma.js';
+import type { DbClient } from '../types/database.js';
 
-export async function findById(id: string) {
-  return prisma.users.findUnique({
-    where: {
-      id,
-    },
-  });
+export async function findById(id: string, client: DbClient = prisma) {
+  client.userBookmark;
+  return client.user.findUnique({ where: { id } });
 }
 
-export async function findByEmail(email: string) {
-  return prisma.users.findUnique({
-    where: {
-      email,
-    },
-  });
+export async function findByEmail(email: string, client: DbClient = prisma) {
+  return client.user.findUnique({ where: { email } });
 }
 
-type UserPayload = {
+export async function findByUsername(username: string, client: DbClient = prisma) {
+  return client.user.findUnique({ where: { username } });
+}
+
+type CreateUserData = {
   email: string;
-  password_hash: string;
+  passwordHash: string;
+  username: string;
+  displayName: string | null;
 };
-export async function create({ email, password_hash }: UserPayload) {
-  return prisma.users.create({
+export async function create(
+  { email, passwordHash: password_hash, username, displayName: display_name }: CreateUserData,
+  client: DbClient = prisma,
+) {
+  return client.user.create({
     data: {
       email,
       password_hash,
+      username,
+      display_name,
     },
   });
 }

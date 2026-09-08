@@ -9,6 +9,7 @@ export type PaginationMeta = {
 export type ApiSuccess<T> = {
   success: true;
   data: T;
+  meta: {};
 };
 
 export type ApiSuccessWithMeta<T, M = PaginationMeta> = {
@@ -27,7 +28,7 @@ export type ApiError = {
   error: {
     message: string;
     code: string;
-    details?: ApiErrorDetails[];
+    details?: ApiErrorDetails[] | null;
   };
 };
 

@@ -5,24 +5,13 @@ type Payload = {
   recipeId: string;
   tagIds: string[];
 };
-export async function create(
-  { recipeId, tagIds }: Payload,
-  client: DbClient = prisma
-) {
-  return client.recipe_tags.createMany({
+export async function createMany({ recipeId, tagIds }: Payload, client: DbClient = prisma) {
+  return client.recipeTag.createMany({
     data: tagIds.map((id) => ({ recipe_id: recipeId, tag_id: id })),
   });
 }
 
-export async function replace(
-  { recipeId, tagIds }: Payload,
-  client: DbClient = prisma
-) {
-  await client.recipe_tags.deleteMany({
-    where: {
-      recipe_id: recipeId,
-    },
-  });
-
-  return create({ recipeId, tagIds }, client);
+export async function replace({ recipeId, tagIds }: Payload, client: DbClient = prisma) {
+  await client.recipeTag.deleteMany({ where: { recipe_id: recipeId } });
+  return createMany({ recipeId, tagIds }, client);
 }

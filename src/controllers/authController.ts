@@ -2,20 +2,45 @@ import type { Request, Response } from 'express';
 import * as userService from '../services/userService.js';
 import { sendSuccess } from '../utils/apiResponse.js';
 
-export async function signup(req: Request, res: Response) {
-  // if exists it will throw an error
+export async function register(req: Request, res: Response) {
+  // if any exists it will throw an error
   await userService.checkEmailAvailable(req.body.email);
+  await userService.checkUsernameAvailable(req.body.username);
 
   const user = await userService.create(req.body);
   return sendSuccess(res, user, 201);
 }
 
 export async function login(req: Request, res: Response) {
-  const { user, token } = await userService.checkCredentials(req.body);
-  return sendSuccess(res, { user, token });
+  const { user, token } = await userService.login({
+    payload: req.body,
+    ipAddr: req.ip ?? null,
+    userAgent: req.get('user-agent') ?? null,
+  });
+
+  res.cookie('session', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 30 * 24 * 60 * 60 * 1000, // for 30 days
+  });
+
+  return sendSuccess(res, user);
 }
 
 export async function me(req: Request, res: Response) {
   const user = await userService.getOne(req.userId);
   return sendSuccess(res, user);
+}
+
+export async function logout(req: Request, res: Response) {
+  await userService.logout(req.sessionId);
+
+  res.clearCookie('session', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+  });
+
+  return sendSuccess(res, {});
 }

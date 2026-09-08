@@ -127,6 +127,7 @@ model Tag {
 model Ingredient {
   id                String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name              String      @unique
+  slug              String      @unique
   image_url         String?      
   created_at        DateTime    @default(now()) @db.Timestamp(6)
   updated_at        DateTime    @updatedAt @db.Timestamp(6)

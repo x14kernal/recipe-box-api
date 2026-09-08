@@ -155,7 +155,7 @@ erDiagram
 
 - **User** — an account. Fields: `email`, `username`, `display_name`, `hashed_password`. One user can have many recipes, many sessions, and many bookmarks.
 - **Session** (`user_session`) — one login on one device. Fields: `session_token_hash`, `expires_at`, `last_seen_at`, `ip_address`, `user_agent`. One session belongs to one user.
-- **Recipe** — belongs to one user (the owner). Fields: `title`, `visibility`, `status`, `serving_size`, `deleted_at`. `deleted_at` marks a soft delete. One recipe can have many steps, many images, and many bookmarks. A recipe can also have many ingredients and many tags.
+- **Recipe** — belongs to one user (the owner). Fields: `title`, `visibility`, `serving_size`, `deleted_at`. `deleted_at` marks a soft delete. One recipe can have many steps, many images, and many bookmarks. A recipe can also have many ingredients and many tags.
 - **Recipe Step** (`recipe_step`) — belongs to one recipe. Fields: `position`, `description`, optional `image_url`. `(recipe_id, position)` is unique, so every step has one clear place in the order.
 - **Recipe Image** (`recipe_image`) — belongs to one recipe. Field: `image_url`. There is no `position` field yet, so images have no fixed order right now (a known gap from the ERD review).
 - **Ingredient** — a shared item, not owned by one recipe. Fields: `name` (unique), `image_url`. Many recipes can use the same ingredient.
@@ -181,24 +181,27 @@ In short: one user has many recipes, sessions, and bookmarks. One recipe has man
 
 ## API Surface
 
-| Method | Path                    | Protected? | Description                                                                             |
-| ------ | ----------------------- | ---------- | --------------------------------------------------------------------------------------- |
-| POST   | `/auth/register`        | No         | Make a new account                                                                      |
-| POST   | `/auth/login`           | No         | Log in                                                                                  |
-| POST   | `/auth/logout`          | Yes        | Log out                                                                                 |
-| GET    | `/recipes`              | No         | Look at and search public recipes                                                       |
-| GET    | `/recipes/:id`          | Depends    | Get one recipe. Everyone can see a public recipe; only the owner can see a private one. |
-| POST   | `/recipes`              | Yes        | Make a new recipe, with its steps, ingredients, tags, and images                        |
-| PATCH  | `/recipes/:id`          | Yes        | Edit a recipe, including its steps, ingredients, tags, and images                       |
-| DELETE | `/recipes/:id`          | Yes        | Delete a recipe                                                                         |
-| GET    | `/recipes/mine`         | Yes        | See your own recipes                                                                    |
-| GET    | `/recipes/trash`        | Yes        | See your deleted recipes                                                                |
-| POST   | `/recipes/:id/restore`  | Yes        | Get a deleted recipe back                                                               |
-| POST   | `/recipes/:id/bookmark` | Yes        | Save a recipe                                                                           |
-| DELETE | `/recipes/:id/bookmark` | Yes        | Remove a saved recipe                                                                   |
-| GET    | `/bookmarks`            | Yes        | See your saved recipes                                                                  |
-| GET    | `/sessions`             | Yes        | See your active sessions                                                                |
-| DELETE | `/sessions/:id`         | Yes        | Log out from one session                                                                |
+| Method | Path                    | Protected? | Description                                                       |
+| ------ | ----------------------- | ---------- | ----------------------------------------------------------------- |
+| POST   | `/auth/register`        | No         | Make a new account                                                |
+| POST   | `/auth/login`           | No         | Log in                                                            |
+| POST   | `/auth/logout`          | Yes        | Log out from the current session                                  |
+| GET    | `/recipes/mine`         | Yes        | Look at and search my recipes (public, private) not (trashed)     |
+| GET    | `/recipes/mine/:id`     | Yes        | Get one of my recipes but not trashed ones                        |
+| GET    | `/recipes/trash`        | Yes        | Look at and and search my trashed recipes                         |
+| GET    | `/recipes/trash/:id`    | Yes        | Get one of my trashed recipes                                     |
+| GET    | `/recipes`              | No         | Look at and search public recipes                                 |
+| GET    | `/recipes/:id`          | No         | Get one public recipe                                             |
+| POST   | `/recipes`              | Yes        | Make a new recipe, with its steps, ingredients, tags, and images  |
+| PATCH  | `/recipes/:id`          | Yes        | Edit a recipe, including its steps, ingredients, tags, and images |
+| DELETE | `/recipes/:id`          | Yes        | Delete a recipe                                                   |
+| PATCH  | `/recipes/:id/trash`    | Yes        | Mark a recipe as trashed                                          |
+| PATCH  | `/recipes/:id/restore`  | Yes        | Restore a trashed recipe                                          |
+| POST   | `/recipes/:id/bookmark` | Yes        | Save a recipe                                                     |
+| DELETE | `/recipes/:id/bookmark` | Yes        | Remove a saved recipe                                             |
+| GET    | `/bookmarks`            | Yes        | See your saved recipes                                            |
+| GET    | `/sessions`             | Yes        | See your active sessions                                          |
+| DELETE | `/sessions/:id`         | Yes        | Log out from one session                                          |
 
 There is no separate endpoint for images. Images are part of the recipe data. They go in with `POST /recipes` when a recipe is created, and with `PATCH /recipes/:id` when a recipe is edited.
 
@@ -268,10 +271,11 @@ When additional error information is available, `details` can contain a structur
   "error": {
     "code": "VALIDATION_ERROR",
     "message": "The request contains invalid fields.",
-    "details": {
-      "email": "Invalid email address",
-      "password": "Password is required"
-    }
+    "details": [
+      { "email": "Invalid email address" },
+      { "password": "Password is required" },
+      { "FieldName": "Message" }
+    ]
   }
 }
 ```
@@ -293,6 +297,8 @@ Every controller uses one of these two functions. This keeps the response shape 
 
 ```ts
 sendSuccess(res, data);
+sendSuccessWithoutData(res);
+sendSuccessWithMeta(res, data, meta);
 sendError(res, status, message);
 ```
 
