@@ -3,7 +3,7 @@ import { ZodError } from 'zod';
 import { AppError } from '../errors/AppError.js';
 import { sendError } from '../utils/apiResponse.js';
 
-export const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
+export const errorHandler: ErrorRequestHandler = (err, _, res, next) => {
   // maybe send to monitoring service like Sentry, DataDog, ..etc. you can do this here.
   console.error(`ErrorHandler -> ${err}`);
 
@@ -19,28 +19,13 @@ export const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
           message: issue.message,
         })),
       },
-      400
+      400,
     );
   }
 
-  if (err instanceof AppError) {
-    return sendError(
-      res,
-      {
-        message: err.message,
-        code: err.code,
-      },
-      err.statusCode
-    );
-  }
+  if (err instanceof AppError)
+    return sendError(res, { message: err.message, code: err.code }, err.statusCode);
 
   // Others
-  return sendError(
-    res,
-    {
-      message: 'Internal Server Error',
-      code: 'INTERNAL_SERVER_ERROR',
-    },
-    500
-  );
+  return sendError(res, { message: 'Internal Server Error', code: 'INTERNAL_SERVER_ERROR' }, 500);
 };
