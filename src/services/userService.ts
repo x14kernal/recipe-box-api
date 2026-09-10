@@ -5,10 +5,11 @@ import { UnauthorizedError, ConflictError, NotFoundError } from '../errors/index
 import * as userRepo from '../repositories/userRepository.js';
 import * as userSessionRepo from '../repositories/userSessionRepository.js';
 import { generateRandomToken, hashSessionToken } from '../utils/crypto.js';
+import { mapUser } from '../mappers/userMapper.js';
 
 export async function getOne(id: string): Promise<User> {
   const user = await userRepo.findById(id);
-  if (!user) throw new NotFoundError('User not found');
+  if (!user) throw new NotFoundError('User not found.');
   return {
     id: user.id,
     email: user.email,
@@ -19,37 +20,24 @@ export async function getOne(id: string): Promise<User> {
 
 export async function checkEmailAvailable(email: string) {
   const user = await userRepo.findByEmail(email);
-  if (user) {
-    throw new ConflictError('User with this email already exists');
-  }
+  if (user) throw new ConflictError('User with this email already exists.');
   return true;
 }
 
 export async function checkUsernameAvailable(username: string) {
   const user = await userRepo.findByUsername(username);
-  if (user) {
-    throw new ConflictError('Username already exists.');
-  }
+  if (user) throw new ConflictError('Username already exists.');
   return true;
 }
 
 export async function create({ email, password, username, displayName }: RegisterUserInput): Promise<User> {
   const passwordHash = await bcrypt.hash(password, 12);
-  const res = await userRepo.create({
-    email,
-    passwordHash,
-    username,
-    displayName,
-  });
-  return {
-    id: res.id,
-    email: res.email,
-    username: res.username,
-    displayName: res.display_name,
-  };
+  const res = await userRepo.create({ email, passwordHash, username, displayName });
+
+  return mapUser(res);
 }
 
-type LoginData = {
+type TLogin = {
   payload: LoginUserInput;
   ipAddr: string | null;
   userAgent: string | null;
@@ -58,16 +46,16 @@ export async function login({
   payload: { identifier, password },
   ipAddr,
   userAgent,
-}: LoginData): Promise<{ user: User; token: string }> {
+}: TLogin): Promise<{ user: User; token: string }> {
   const isEmail = z.email().safeParse(identifier).success;
 
   const user = isEmail ? await userRepo.findByEmail(identifier) : await userRepo.findByUsername(identifier);
 
-  if (!user) throw new UnauthorizedError();
+  if (!user) throw new UnauthorizedError('Email or Password not valid.');
 
   const isPasswordCorrect = await bcrypt.compare(password, user.password_hash);
 
-  if (!isPasswordCorrect) throw new UnauthorizedError();
+  if (!isPasswordCorrect) throw new UnauthorizedError('Email or Password not valid.');
 
   /*
     - Instead of depending on JWT as a session, I'll depend on database session as the session
@@ -82,7 +70,7 @@ export async function login({
 
   await userSessionRepo.create({ userId: user.id, hashedToken, expiresAt, ipAddr, userAgent });
 
-  return { user: { ...user, displayName: user.display_name }, token };
+  return { user: mapUser(user), token };
 }
 
 export async function logout(sessionId: string) {

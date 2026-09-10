@@ -1,0 +1,167 @@
+@baseUrl = http://localhost:3000/api
+
+# Add yours here
+@myPublicRecipeId = 7a990c52-558a-489a-a530-f9ba979bd571
+@myPrivateRecipeId = b6f72f48-0c5d-4629-8a0a-1062f6606529
+@notMyRecipeId = dcb4a8bb-ab59-4f9a-ab5f-ae015fdf69a0
+@trashedRecipeId = 29a0ca1b-0fb5-410d-b08f-839028fba9a5
+@privateTrashedRecipeId = 63a850dd-462a-4937-bc10-4525e443d923
+
+
+### ============================================================
+### RECIPES — LIST
+### ============================================================
+
+### Get all recipes
+GET {{baseUrl}}/recipes
+
+### Get my recipes
+GET {{baseUrl}}/recipes/mine
+
+### Get my dinner recipes
+GET {{baseUrl}}/recipes/mine?tags=dinner
+
+### Get Mexican recipes
+GET {{baseUrl}}/recipes?tags=
+
+### Get Mexican OR Italian recipes with Cilantro
+GET {{baseUrl}}/recipes?tags=mexican,italian&ingredients=Cilantro
+
+### Get recipes with Cilantro, Chili Powder
+GET {{baseUrl}}/recipes?ingredients=chilI-Powder,Cilantro
+
+### Get recipes with Cilantro AND lime
+GET {{baseUrl}}/recipes?ingredients=Cilantro,lime
+
+### Search recipes
+GET {{baseUrl}}/recipes?page=1&limit=3&sortBy=title&search=creamy
+
+### Random recipe
+GET {{baseUrl}}/recipes/random
+
+
+### ============================================================
+### RECIPES — SINGLE
+### ============================================================
+
+### Get public recipe
+GET {{baseUrl}}/recipes/{{myPublicRecipeId}}
+
+### Get my public recipe
+GET {{baseUrl}}/recipes/mine/{{myPublicRecipeId}}
+
+### Get my private recipe
+GET {{baseUrl}}/recipes/mine/{{myPrivateRecipeId}}
+
+
+### ============================================================
+### RECIPES — CREATE
+### ============================================================
+
+### Create recipe
+POST {{baseUrl}}/recipes
+Content-Type: application/json
+
+{
+  "title": "Creamy Garlic Chicken",
+  "servingSize": 4,
+  "visibility": "public",
+  "images": [
+    {
+      "imageUrl": "https://example.com/images/creamy-garlic-chicken.jpg"
+    }
+  ],
+  "steps": [
+    {
+      "description": "Cut the chicken breast into bite-sized pieces.",
+      "image": null
+    },
+    {
+      "description": "Heat the olive oil in a large pan over medium-high heat and cook the chicken until golden.",
+      "image": null
+    }
+  ],
+  "ingredients": [
+    {
+      "name": "Chicken Breast",
+      "image": null,
+      "quantity": 500,
+      "unit": "g"
+    },
+    {
+      "name": "Olive Oil",
+      "image": null,
+      "quantity": 2,
+      "unit": "tbsp"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Dinner"
+    },
+    {
+      "name": "Chicken"
+    }
+  ]
+}
+
+
+### ============================================================
+### RECIPES — UPDATE
+### ============================================================
+
+### Update my recipe
+PATCH {{baseUrl}}/recipes/{{myPublicRecipeId}}
+Content-Type: application/json
+
+{
+  "title": "Grandma's Tomato Soup",
+  "servingSize": 4,
+  "visibility": "public",
+  "ingredients": [
+    { "name": "tomato", "quantity": 6, "unit": "whole" }
+  ],
+  "tags": [
+    { "name": "vegan" }
+  ],
+  "images": [
+    { "imageUrl": "https://example.com/soup.jpg" }
+  ],
+  "steps": [
+    { "description": "Chop the tomatoes." },
+    { "description": "Simmer for 20 minutes." }
+  ]
+}
+
+
+### ============================================================
+### RECIPES — TRASH
+### ============================================================
+
+### Trash recipe
+PATCH {{baseUrl}}/recipes/{{trashedRecipeId}}/trash
+
+### Restore recipe
+PATCH {{baseUrl}}/recipes/{{trashedRecipeId}}/restore
+
+
+### ============================================================
+### RECIPES — DELETE
+### ============================================================
+
+### Delete recipe
+DELETE {{baseUrl}}/recipes/{{myPublicRecipeId}}
+
+
+### ============================================================
+### RECIPES — OTHERS
+### ============================================================
+
+### Cannot access someone else's recipe
+GET {{baseUrl}}/recipes/mine/{{notMyRecipeId}}
+
+### Cannot access trashed recipe through /mine
+GET {{baseUrl}}/recipes/mine/{{trashedRecipeId}}
+
+### Cannot access private trashed recipe through trash endpoint
+GET {{baseUrl}}/recipes/trash/{{privateTrashedRecipeId}}

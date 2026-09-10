@@ -5,15 +5,16 @@ import { parseRecipeQuery } from '../utils/recipeQuery.js';
 
 import * as recipeService from '../services/recipeService.js';
 import * as bookmarkService from '../services/bookmarkService.js';
+import { listRecipesQuerySchema } from '../types/recipe.js';
 
 export async function getAllRecipes(req: Request, res: Response) {
-  const query = parseRecipeQuery(req.query);
+  const query = parseRecipeQuery(listRecipesQuerySchema.parse(req.query));
   const data = await recipeService.getMany(query);
   return sendRecipeListResponse(res, data, query, '/recipes');
 }
 
 export async function getMyRecipes(req: Request, res: Response) {
-  const query = parseRecipeQuery(req.query);
+  const query = parseRecipeQuery(listRecipesQuerySchema.parse(req.query));
   const data = await recipeService.getMine(req.userId, query);
   return sendRecipeListResponse(res, data, query, '/recipes/mine');
 }
@@ -23,7 +24,7 @@ export async function getMyRecipeById(req: Request<{ id: string }>, res: Respons
 }
 
 export async function getMyTrashedRecipes(req: Request, res: Response) {
-  const query = parseRecipeQuery(req.query);
+  const query = parseRecipeQuery(listRecipesQuerySchema.parse(req.query));
   const data = await recipeService.getTrash(req.userId, query);
   return sendRecipeListResponse(res, data, query, '/recipes/trash');
 }

@@ -1,8 +1,8 @@
-import { mapRecipe } from '../mappers/recipeMapper.js';
+import { mapRecipe, mapRecipeListItem } from '../mappers/recipeMapper.js';
 import * as bookmarkRepo from '../repositories/bookmarkRepository.js';
-import type { ParsedListQuery } from '../types/recipe.js';
+import type { ListRecipesQueryParsed } from '../types/recipe.js';
 
-export async function getMany(userId: string, params: ParsedListQuery) {
+export async function getMany(userId: string, params: ListRecipesQueryParsed) {
   const { page, limit, ...query } = params;
   const sortedBy =
     query.sortedBy === 'createdAt' ? 'created_at' : query.sortedBy === 'servingSize' ? 'serving_size' : 'title';
@@ -15,12 +15,10 @@ export async function getMany(userId: string, params: ParsedListQuery) {
     sortedBy,
   });
 
-  console.log(userId, bookmarks);
-
   const totalPages = Math.ceil(total / limit);
 
   return {
-    recipes: bookmarks.map((b) => mapRecipe(b.recipe)),
+    recipes: bookmarks.map((b) => mapRecipeListItem(b.recipe)),
     total,
     page,
     limit,

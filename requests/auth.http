@@ -1,0 +1,58 @@
+@baseUrl = http://localhost:3000/api
+
+@email = muhammed@example.com
+@username = x14Kernal
+@password = password$
+
+### ============================================================
+### AUTH — SUCCESS
+### ============================================================
+
+### Register
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}",
+  "username": "{{username}}",
+  "displayName": "Muhammed Ahmed"
+}
+
+### Login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "identifier": "{{email}}",
+  "password": "{{password}}"
+}
+
+### Current user
+GET {{baseUrl}}/auth/me
+
+### Logout
+POST {{baseUrl}}/auth/logout
+
+
+### ============================================================
+### AUTH — ERROR CASES
+### ============================================================
+
+### Invalid identifier
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "identifier": "does-not-exist@example.com",
+  "password": "{{password}}"
+}
+
+### Invalid password
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "identifier": "{{username}}",
+  "password": "wrong-password"
+}
