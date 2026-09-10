@@ -2,7 +2,6 @@ import { prisma } from '../lib/prisma.js';
 import type { DbClient } from '../types/database.js';
 
 export async function findById(id: string, client: DbClient = prisma) {
-  client.userBookmark;
   return client.user.findUnique({ where: { id } });
 }
 
@@ -14,22 +13,15 @@ export async function findByUsername(username: string, client: DbClient = prisma
   return client.user.findUnique({ where: { username } });
 }
 
-type CreateUserData = {
+type TCreate = {
   email: string;
   passwordHash: string;
   username: string;
   displayName: string | null;
 };
 export async function create(
-  { email, passwordHash: password_hash, username, displayName: display_name }: CreateUserData,
+  { email, passwordHash: password_hash, username, displayName: display_name }: TCreate,
   client: DbClient = prisma,
 ) {
-  return client.user.create({
-    data: {
-      email,
-      password_hash,
-      username,
-      display_name,
-    },
-  });
+  return client.user.create({ data: { email, password_hash, username, display_name } });
 }

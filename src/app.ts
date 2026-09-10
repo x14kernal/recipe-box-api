@@ -11,7 +11,24 @@ import cookieParser from 'cookie-parser';
 
 const app: Express = express();
 
-app.use(cors()); // I need to allow only my Front-end app
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no Origin (Postman, server-to-server, etc.)
+      if (!origin) return callback(null, true);
+
+      // Allow any localhost / 127.0.0.1 port
+      if (/^https?:\/\/localhost(:\d+)?$/.test(origin) || /^https?:\/\/127\.0\.0\.1(:\d+)?$/.test(origin))
+        return callback(null, true);
+
+      // Allow production frontend
+      if (origin === 'https://recipes-x.vercel.app') return callback(null, true);
+
+      return callback(new Error('Not allowed by CORS'));
+    },
+  }),
+);
+
 app.set('trust proxy', 1); // Trust the first proxy (Vercel's edge network)
 app.use(cookieParser());
 app.use(express.json()); // to read data coming in from the client, convert JSON into JS object

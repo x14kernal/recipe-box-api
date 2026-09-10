@@ -86,9 +86,9 @@ export const updateRecipeSchema = z.object({
     .array(newImgSchema.extend({ id: idSchema.optional() }))
     .max(10)
     .optional(),
-  steps: z.array(newStepSchema).max(50).optional(),
-  ingredients: z.array(recipeIngredientInputSchema).max(50).optional(),
-  tags: z.array(recipeTagSchema).max(10).optional(),
+  steps: z.array(newStepSchema).min(1).max(50).optional(),
+  ingredients: z.array(recipeIngredientInputSchema).min(1).max(50).optional(),
+  tags: z.array(recipeTagSchema).min(1).max(10).optional(),
 });
 
 // ---------------------------------------------------------------------------
@@ -109,10 +109,14 @@ export const recipeSchema = recipeBaseSchema.extend({
 
 export const recipeListItemSchema = z.object({
   id: idSchema,
+  ownerId: idSchema,
   title: z.string(),
   servingSize: z.number(),
   visibility: z.enum(['public', 'private']),
   createdAt: z.iso.datetime(),
+  user: userSchema.omit({ email: true }),
+  coverImage: existingImgSchema.nullable(),
+  tags: z.array(newTagSchema.extend({ id: idSchema, slug: z.string() })),
 });
 
 // ---------------------------------------------------------------------------
@@ -121,15 +125,17 @@ export const recipeListItemSchema = z.object({
 
 export const recipeIdParamsSchema = z.object({ recipeId: idSchema });
 
-export const listRecipesQuerySchema = z.object({
-  page: z.coerce.number().int().min(1).default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(10),
-  ingredientSlugs: z.string().optional(),
-  tagSlugs: z.string().optional(),
-  search: z.string().trim().max(100).optional(),
-  sortBy: z.enum(['title', 'createdAt', 'servingSize']).default('createdAt'),
-  order: z.enum(['asc', 'desc']).default('desc'),
-});
+export const listRecipesQuerySchema = z
+  .object({
+    page: z.coerce.number().int().min(1).default(1),
+    limit: z.coerce.number().int().min(1).max(100).default(10),
+    ingredients: z.string().trim().optional(),
+    tags: z.string().trim().optional(),
+    search: z.string().trim().max(100).optional(),
+    sortBy: z.enum(['title', 'createdAt', 'servingSize']).default('createdAt'),
+    order: z.enum(['asc', 'desc']).default('desc'),
+  })
+  .strict();
 
 // ---------------------------------------------------------------------------
 // Child resources with their own lifecycle
@@ -154,13 +160,16 @@ export const createRecipeImage = z.object({
 // Types
 // ---------------------------------------------------------------------------
 
+export type RecipeIdParams = z.infer<typeof recipeIdParamsSchema>;
+
 export type Recipe = z.infer<typeof recipeSchema>;
 export type RecipeListItem = z.infer<typeof recipeListItemSchema>;
+
 export type CreateRecipe = z.infer<typeof createRecipeSchema>;
 export type UpdateRecipe = z.infer<typeof updateRecipeSchema>;
-export type RecipeIdParams = z.infer<typeof recipeIdParamsSchema>;
+
 export type ListRecipesQuery = z.infer<typeof listRecipesQuerySchema>;
-export type ParsedListQuery = {
+export type ListRecipesQueryParsed = {
   page: number;
   limit: number;
   orderedBy: 'asc' | 'desc';

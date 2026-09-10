@@ -10,19 +10,18 @@ The Recipe App gives users one place for their recipes. Users can create recipes
 
 1. Users can create an account. Users can log in and log out.
 2. Users can create, edit, and delete their own recipes.
-3. A recipe has a title, a description, ingredients, and steps. The steps are in order.
+3. A recipe has a title, ingredients, and steps. The steps are in order.
 4. Users can add pictures to a recipe. Users can add a picture to each step.
 5. Users can add tags to a recipe.
 6. Users can make a recipe public or private.
 7. Guests can look at public recipes. Guests do not need an account.
 8. Users can search recipes by title. Users can search recipes by ingredient.
 9. Users can filter recipes by tag.
-10. Users can change the recipe size. The app changes the ingredient amounts too.
-11. Users can save a public recipe. Users can remove a saved recipe.
-12. Users can see their saved recipes.
-13. Users can see recipes they deleted. Users can get a deleted recipe back.
-14. Users can log in on many devices at the same time. Users can see and manage these devices.
-15. Users can share a public recipe with other people.
+10. Users can save a public recipe. Users can remove a saved recipe.
+11. Users can see their saved recipes.
+12. Users can see recipes they deleted. Users can get a deleted recipe back.
+13. Users can log in on many devices at the same time. Users can see and manage these devices.
+14. Users can share a public recipe with other people.
 
 ## Out of Scope for v1
 
@@ -77,7 +76,7 @@ erDiagram
     uuid id PK
     string email UK
     string username UK
-    string display_name
+    string display_name "nullable"
     string password_hash
     datetime created_at
     datetime updated_at
@@ -86,8 +85,8 @@ erDiagram
     uuid id PK
     uuid user_id FK
     string session_token_hash UK
-    string ip_address
-    string user_agent
+    string ip_address "nullable, inet"
+    string user_agent "nullable"
     datetime expires_at
     datetime created_at
     datetime updated_at
@@ -95,8 +94,8 @@ erDiagram
   }
   USER_BOOKMARK {
     uuid id PK
-    uuid user_id FK
-    uuid recipe_id FK
+    uuid user_id FK "unique with recipe_id"
+    uuid recipe_id FK "unique with user_id"
     datetime created_at
     datetime updated_at
   }
@@ -105,10 +104,10 @@ erDiagram
     uuid user_id FK
     string title
     int serving_size
-    string visibility
+    string visibility "enum: public, private"
     datetime created_at
     datetime updated_at
-    datetime deleted_at
+    datetime deleted_at "nullable"
   }
   RECIPE_IMAGE {
     uuid id PK
@@ -119,10 +118,10 @@ erDiagram
   }
   RECIPE_STEP {
     uuid id PK
-    uuid recipe_id FK
-    int position
+    uuid recipe_id FK "unique with position"
+    int position "unique with recipe_id"
     string description
-    string image_url
+    string image_url "nullable"
     datetime created_at
     datetime updated_at
   }
@@ -136,7 +135,8 @@ erDiagram
   INGREDIENTS {
     uuid id PK
     string name UK
-    string image_url
+    string slug UK
+    string image_url "nullable"
     datetime created_at
     datetime updated_at
   }
@@ -146,8 +146,8 @@ erDiagram
   }
   RECIPE_INGREDIENT {
     uuid id PK
-    uuid recipe_id FK
-    uuid ingredient_id FK
+    uuid recipe_id FK "unique with ingredient_id"
+    uuid ingredient_id FK "unique with recipe_id"
     decimal quantity
     string unit
   }
@@ -158,7 +158,7 @@ erDiagram
 - **Recipe** — belongs to one user (the owner). Fields: `title`, `visibility`, `serving_size`, `deleted_at`. `deleted_at` marks a soft delete. One recipe can have many steps, many images, and many bookmarks. A recipe can also have many ingredients and many tags.
 - **Recipe Step** (`recipe_step`) — belongs to one recipe. Fields: `position`, `description`, optional `image_url`. `(recipe_id, position)` is unique, so every step has one clear place in the order.
 - **Recipe Image** (`recipe_image`) — belongs to one recipe. Field: `image_url`. There is no `position` field yet, so images have no fixed order right now (a known gap from the ERD review).
-- **Ingredient** — a shared item, not owned by one recipe. Fields: `name` (unique), `image_url`. Many recipes can use the same ingredient.
+- **Ingredient** — a shared item, not owned by one recipe. Fields: `name`, `slug` (unique), `image_url`. Many recipes can use the same ingredient.
 - **Recipe Ingredient** (`recipe_ingredient`) — connects a recipe and an ingredient. Fields: `quantity`, `unit`. `(recipe_id, ingredient_id)` is unique.
 - **Tag** — a shared label. Fields: `name`, `slug`. Many recipes can use the same tag.
 - **Recipe Tag** (`recipe_tag`) — connects a recipe and a tag. `(recipe_id, tag_id)` is unique.

@@ -113,12 +113,15 @@ export async function findMany(
       orderBy: {
         [sortedBy]: orderedBy, // defualt createdAt -> desc
       },
-      include: {
-        recipeTag: { include: { tag: true } },
-        recipeIngredient: { include: { ingredient: true } },
-        recipeStep: { orderBy: { position: 'asc' } },
-        recipeImage: true,
-        user: true,
+      select: {
+        id: true,
+        title: true,
+        serving_size: true,
+        visibility: true,
+        created_at: true,
+        user: { select: { id: true, username: true, display_name: true } },
+        recipeTag: { select: { tag: { select: { id: true, name: true, slug: true } } } },
+        recipeImage: { select: { id: true, image_url: true } },
       },
     }),
 

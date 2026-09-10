@@ -1,9 +1,9 @@
 import type { Request, Response } from 'express';
 import * as userService from '../services/userService.js';
-import { sendSuccess } from '../utils/apiResponse.js';
+import { sendSuccess, sendSuccessWithoutData } from '../utils/apiResponse.js';
 
 export async function register(req: Request, res: Response) {
-  // if any exists it will throw an error
+  // if any (email/username) exists it will throw an error
   await userService.checkEmailAvailable(req.body.email);
   await userService.checkUsernameAvailable(req.body.username);
 
@@ -42,5 +42,5 @@ export async function logout(req: Request, res: Response) {
     sameSite: 'lax',
   });
 
-  return sendSuccess(res, {});
+  return sendSuccessWithoutData(res);
 }

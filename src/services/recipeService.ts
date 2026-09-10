@@ -3,7 +3,7 @@ import { prisma } from '../lib/prisma.js';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 import type { DbClient } from '../types/database.js';
 import { ConflictError, NotFoundError } from '../errors/index.js';
-import { mapRecipe } from '../mappers/recipeMapper.js';
+import { mapRecipe, mapRecipeListItem } from '../mappers/recipeMapper.js';
 import {
   idSchema,
   type CreateRecipe,
@@ -13,7 +13,7 @@ import {
   type NewImg,
   type NewRecipeIngredient,
   type NewTag,
-  type ParsedListQuery,
+  type ListRecipesQueryParsed,
   type Recipe,
   type UpdateRecipe,
 } from '../types/recipe.js';
@@ -50,18 +50,18 @@ export async function getTrashedById(userId: string, id: string): Promise<Recipe
   return mapRecipe(recipe);
 }
 
-export async function getMany(params: ParsedListQuery) {
+export async function getMany(params: ListRecipesQueryParsed) {
   return getManyInternal(params);
 }
 
-export async function getMine(userId: string, params: ParsedListQuery) {
+export async function getMine(userId: string, params: ListRecipesQueryParsed) {
   return getManyInternal({
     ...params,
     userId,
   });
 }
 
-export async function getTrash(userId: string, params: ParsedListQuery) {
+export async function getTrash(userId: string, params: ListRecipesQueryParsed) {
   return getManyInternal({
     ...params,
     userId,
@@ -146,7 +146,7 @@ export async function updateOne({ recipe, recipeId, userId }: TUpdate) {
       // Add new created ings to ingsToSync list
       ingsToCreate.forEach(({ name, quantity, unit }) => {
         const item = createdIngs.get(name);
-        if (!item) throw new NotFoundError('Ingredient not found');
+        if (!item) throw new NotFoundError('Ingredient not found.');
         ingsToSync.push({ id: item.id, quantity, unit });
       });
 
@@ -165,7 +165,7 @@ export async function updateOne({ recipe, recipeId, userId }: TUpdate) {
       // Add new created tags to tagsToSync list
       tagsToCreate.forEach(({ name }) => {
         const item = createdTags.get(name);
-        if (!item) throw new NotFoundError('Tag not found');
+        if (!item) throw new NotFoundError('Tag not found.');
         tagsToSync.push({ id: item.id });
       });
 
@@ -253,7 +253,7 @@ async function getOwnedRecipeOrThrow({ recipeId, userId, isTrash }: TGetOwnedRec
   return existing;
 }
 
-type TGetManyInternal = ParsedListQuery & {
+type TGetManyInternal = ListRecipesQueryParsed & {
   userId?: string;
   isTrash?: boolean;
 };
@@ -294,7 +294,7 @@ async function getManyInternal({
   const totalPages = Math.ceil(total / limit);
 
   return {
-    recipes: recipes.map((recipe) => mapRecipe(recipe)),
+    recipes: recipes.map((recipe) => mapRecipeListItem(recipe)),
     total,
     page,
     limit,

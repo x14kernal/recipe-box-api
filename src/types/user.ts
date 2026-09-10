@@ -5,12 +5,13 @@ const userBaseSchema = z.object({
   username: z.string().trim().toLowerCase(),
   displayName: z.string().trim().toLowerCase().nullable(),
 });
+const passwordSchema = z.string().min(8).max(24);
 
-export const registerSchema = userBaseSchema.extend({ password: z.string().min(8).max(24) });
+export const registerSchema = userBaseSchema.extend({ password: passwordSchema });
 
 export const loginSchema = z.object({
   identifier: z.string().trim().toLowerCase(),
-  password: z.string().min(8).max(24),
+  password: passwordSchema,
 });
 
 export const userSchema = userBaseSchema.extend({ id: z.uuid() });
