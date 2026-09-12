@@ -39,7 +39,7 @@ export async function logout(req: Request, res: Response) {
   res.clearCookie('session', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    sameSite: 'none',
   });
 
   return sendSuccessWithoutData(res);
