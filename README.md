@@ -89,6 +89,8 @@ A private recipe must stay invisible to everyone but its owner: it must not appe
 | GET    | `/api/bookmarks`            | Yes        | List your saved recipes                                             |
 | GET    | `/api/sessions`             | Yes        | List your active sessions (devices)                                 |
 | DELETE | `/api/sessions/:id`         | Yes        | Log out from one specific session                                   |
+| GET    | `/ingredients`              | NO         | List ingredients                                                    |
+| GET    | `/tags`                     | NO         | List tags                                                           |
 
 There's no separate endpoint for images — they travel with the recipe payload. On `PATCH /api/recipes/:id`, `steps`, `ingredients`, `tags`, and `images` are each optional and independent: omit a field and that part of the recipe is untouched; include it and it **replaces** the existing list wholesale — cleared and rebuilt from what you send, not merged, so whatever you send must be the complete list, not just the changed items. `steps`, `ingredients`, and `tags` each require at least one item if you include them at all; `images` has no such minimum, so it's the only one of the four you can send as an empty array to clear it out entirely.
 

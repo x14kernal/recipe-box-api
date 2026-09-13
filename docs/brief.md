@@ -202,6 +202,8 @@ In short: one user has many recipes, sessions, and bookmarks. One recipe has man
 | GET    | `/bookmarks`            | Yes        | See your saved recipes                                            |
 | GET    | `/sessions`             | Yes        | See your active sessions                                          |
 | DELETE | `/sessions/:id`         | Yes        | Log out from one session                                          |
+| GET    | `/ingredients`          | NO         | List ingredients                                                  |
+| GET    | `/tags`                 | NO         | List tags                                                         |
 
 There is no separate endpoint for images. Images are part of the recipe data. They go in with `POST /recipes` when a recipe is created, and with `PATCH /recipes/:id` when a recipe is edited.
 
