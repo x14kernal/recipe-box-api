@@ -1,7 +1,5 @@
-import type { UserSession } from '../generated/prisma/client.js';
+import type { UserSession as DbSession } from '../generated/prisma/client.js';
 import type { Session } from '../types/session.js';
-
-type DbSession = UserSession;
 
 export function mapSession(session: DbSession, isCurrent = false): Session {
   return {

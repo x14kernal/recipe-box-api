@@ -5,6 +5,8 @@ import recipesRouter from './routes/recipe.js';
 import authRouter from './routes/auth.js';
 import bookmarkRouter from './routes/bookmark.js';
 import sessionRouter from './routes/session.js';
+import ingredientRouter from './routes/ingredient.js';
+import tagRouter from './routes/tag.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 import logger from './middlewares/logger.js';
 import cookieParser from 'cookie-parser';
@@ -39,6 +41,8 @@ app.use('/api/auth', authRouter);
 app.use('/api/recipes', recipesRouter);
 app.use('/api/sessions', sessionRouter);
 app.use('/api/bookmarks', bookmarkRouter);
+app.use('/api/ingredients', ingredientRouter);
+app.use('/api/tags', tagRouter);
 
 app.use(errorHandler);
 

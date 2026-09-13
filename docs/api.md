@@ -7,28 +7,30 @@
 
 ## Endpoints
 
-| Method | Path | Auth | Purpose |
-|---|---|---|---|
-| POST | `/auth/register` | No | Create a new user account |
-| POST | `/auth/login` | No | Authenticate a user and start a new session |
-| GET | `/auth/me` | Yes | Get the current authenticated user |
-| POST | `/auth/logout` | Yes | End the current session (log out) |
-| GET | `/recipes/mine` | Yes | List/search the current user's own recipes (public + private), excluding trashed |
-| GET | `/recipes/mine/:id` | Yes | Get a single recipe owned by the current user (excluding trashed) |
-| GET | `/recipes/trash` | Yes | List/search the current user's trashed recipes |
-| GET | `/recipes/trash/:id` | Yes | Get a single trashed recipe owned by the current user |
-| GET | `/recipes` | No | List/search public recipes |
-| GET | `/recipes/:id` | No | Get a single public recipe |
-| POST | `/recipes` | Yes | Create a new recipe (steps, ingredients, tags, images) |
-| PATCH | `/recipes/:id` | Yes | Edit an existing recipe |
-| DELETE | `/recipes/:id` | Yes | Permanently delete a recipe |
-| PATCH | `/recipes/:id/trash` | Yes | Mark a recipe as trashed (soft delete) |
-| PATCH | `/recipes/:id/restore` | Yes | Restore a trashed recipe |
-| POST | `/recipes/:id/bookmark` | Yes | Bookmark (save) a recipe |
-| DELETE | `/recipes/:id/bookmark` | Yes | Remove a recipe from bookmarks |
-| GET | `/bookmarks` | Yes | List the current user's bookmarked recipes |
-| GET | `/sessions` | Yes | List the current user's active sessions |
-| DELETE | `/sessions/:id` | Yes | Log out from one specific session |
+| Method | Path                    | Auth | Purpose                                                                          |
+| ------ | ----------------------- | ---- | -------------------------------------------------------------------------------- |
+| POST   | `/auth/register`        | No   | Create a new user account                                                        |
+| POST   | `/auth/login`           | No   | Authenticate a user and start a new session                                      |
+| GET    | `/auth/me`              | Yes  | Get the current authenticated user                                               |
+| POST   | `/auth/logout`          | Yes  | End the current session (log out)                                                |
+| GET    | `/recipes/mine`         | Yes  | List/search the current user's own recipes (public + private), excluding trashed |
+| GET    | `/recipes/mine/:id`     | Yes  | Get a single recipe owned by the current user (excluding trashed)                |
+| GET    | `/recipes/trash`        | Yes  | List/search the current user's trashed recipes                                   |
+| GET    | `/recipes/trash/:id`    | Yes  | Get a single trashed recipe owned by the current user                            |
+| GET    | `/recipes`              | No   | List/search public recipes                                                       |
+| GET    | `/recipes/:id`          | No   | Get a single public recipe                                                       |
+| POST   | `/recipes`              | Yes  | Create a new recipe (steps, ingredients, tags, images)                           |
+| PATCH  | `/recipes/:id`          | Yes  | Edit an existing recipe                                                          |
+| DELETE | `/recipes/:id`          | Yes  | Permanently delete a recipe                                                      |
+| PATCH  | `/recipes/:id/trash`    | Yes  | Mark a recipe as trashed (soft delete)                                           |
+| PATCH  | `/recipes/:id/restore`  | Yes  | Restore a trashed recipe                                                         |
+| POST   | `/recipes/:id/bookmark` | Yes  | Bookmark (save) a recipe                                                         |
+| DELETE | `/recipes/:id/bookmark` | Yes  | Remove a recipe from bookmarks                                                   |
+| GET    | `/bookmarks`            | Yes  | List the current user's bookmarked recipes                                       |
+| GET    | `/sessions`             | Yes  | List the current user's active sessions                                          |
+| DELETE | `/sessions/:id`         | Yes  | Log out from one specific session                                                |
+| GET    | `/ingredients`          | NO   | List ingredients                                                                 |
+| GET    | `/tags`                 | NO   | List tags                                                                        |
 
 ---
 
@@ -195,7 +197,7 @@ GET /recipes/mine?search=pasta&tags=vegan&limit=20
         "username": "string",
         "displayName": "string | null"
       },
-      "coverImage": { "imageUrl": "string", "id": "string" } ,
+      "coverImage": { "imageUrl": "string", "id": "string" },
       "tags": [{ "name": "string", "id": "string", "slug": "string" }]
     }
   ],

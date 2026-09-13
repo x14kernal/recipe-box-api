@@ -179,12 +179,23 @@ export type ListRecipesQueryParsed = {
   ingredientSlugs?: string[];
 };
 
+export type Ingredient = {
+  id: string;
+  name: string;
+  slug: string;
+  image_url: string | null;
+};
 export type CreateIngredient = z.infer<typeof ingredientBaseSchema>;
 export type NewRecipeIngredient = z.infer<typeof newRecipeIngredientSchema>;
 export type ExistingRecipeIngredient = z.infer<typeof existingRecipeIngredientSchema>;
 export type RecipeIngredientInput = z.infer<typeof recipeIngredientInputSchema>;
 export type CreateRecipeIngredient = z.infer<typeof createRecipeIngredient>;
 
+export type Tag = {
+  id: string;
+  name: string;
+  slug: string;
+};
 export type NewTag = z.infer<typeof newTagSchema>;
 export type ExistingTag = z.infer<typeof existingTagSchema>;
 export type RecipeTagInput = z.infer<typeof recipeTagSchema>;

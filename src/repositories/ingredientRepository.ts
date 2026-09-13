@@ -3,6 +3,10 @@ import type { DbClient } from '../types/database.js';
 import type { CreateIngredient } from '../types/recipe.js';
 import { slugify } from '../utils/slugify.js';
 
+export async function findMany(client: DbClient = prisma) {
+  return client.ingredient.findMany();
+}
+
 export async function createMany(ingredients: CreateIngredient[], client: DbClient = prisma) {
   const slugs = ingredients.map(({ name }) => slugify(name));
 
