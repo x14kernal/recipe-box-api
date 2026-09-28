@@ -7,6 +7,6 @@ import { listRecipesQuerySchema } from '../types/recipe.js';
 
 export async function getAllBookmarks(req: Request, res: Response) {
   const query = parseRecipeQuery(listRecipesQuerySchema.parse(req.query));
-  const data = await bookmarkService.getMany(req.userId, query);
+  const data = await bookmarkService.getMany(req.userId!, query);
   return sendRecipeListResponse(res, data, query, '/bookmarks');
 }

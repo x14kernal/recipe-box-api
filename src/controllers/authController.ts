@@ -29,12 +29,12 @@ export async function login(req: Request, res: Response) {
 }
 
 export async function me(req: Request, res: Response) {
-  const user = await userService.getOne(req.userId);
+  const user = await userService.getOne(req.userId!);
   return sendSuccess(res, user);
 }
 
 export async function logout(req: Request, res: Response) {
-  await userService.logout(req.sessionId);
+  await userService.logout(req.sessionId!);
 
   res.clearCookie('session', {
     httpOnly: true,

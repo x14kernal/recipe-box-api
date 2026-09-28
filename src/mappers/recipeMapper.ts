@@ -8,6 +8,7 @@ type DbRecipe = RecipeGetPayload<{
     recipeTag: { include: { tag: true } };
     recipeImage: true;
     user: true;
+    userBookmarks: { select: { id: true } };
   };
 }>;
 
@@ -22,6 +23,7 @@ type DbRecipeListItem = RecipeGetPayload<{
     user: { select: { id: true; username: true; display_name: true } };
     recipeTag: { select: { tag: { select: { id: true; name: true; slug: true } } } };
     recipeImage: { select: { id: true; image_url: true } };
+    userBookmarks: { select: { id: true } };
   };
 }>;
 
@@ -34,6 +36,8 @@ export function mapRecipe(recipe: DbRecipe): Recipe {
     visibility: recipe.visibility,
     createdAt: recipe.created_at.toISOString(),
     updatedAt: recipe.updated_at.toISOString(),
+    isBookmarked: recipe.userBookmarks.length > 0,
+
     user: {
       id: recipe.user.id,
       username: recipe.user.username,
@@ -74,6 +78,7 @@ export function mapRecipeListItem(recipe: DbRecipeListItem): RecipeListItem {
     servingSize: recipe.serving_size,
     visibility: recipe.visibility,
     createdAt: recipe.created_at.toISOString(),
+    isBookmarked: recipe.userBookmarks.length > 0,
 
     user: {
       id: recipe.user.id,

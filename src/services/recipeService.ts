@@ -25,26 +25,26 @@ import * as recipeImageRepo from '../repositories/recipeImageRepository.js';
 import * as recipeIngredientRepo from '../repositories/recipeIngredientRepository.js';
 import * as recipeTagRepo from '../repositories/recipeTagRepository.js';
 
-export async function getOne(id: string): Promise<Recipe> {
+export async function getOne(id: string, userId?: string): Promise<Recipe> {
   const recipeId = validateRecipeId(id);
-  const recipe = await recipeRepo.findPublicById(recipeId);
+  const recipe = await recipeRepo.findPublicById({ id: recipeId, ...(userId && { userId }) });
   if (!recipe) throw new NotFoundError('Recipe not found');
   return mapRecipe(recipe);
 }
 
-export async function getRandom() {
+export async function getRandom(userId?: string) {
   const random = await recipeRepo.findRandomId();
   if (!random) throw new NotFoundError('No recipe found');
-  return getOne(random.id);
+  return getOne(random.id, userId);
 }
 
-export async function getMyById(userId: string, id: string): Promise<Recipe> {
+export async function getMyById(id: string, userId: string): Promise<Recipe> {
   const recipeId = validateRecipeId(id);
   const recipe = await getOwnedRecipeOrThrow({ recipeId, userId });
   return mapRecipe(recipe);
 }
 
-export async function getTrashedById(userId: string, id: string): Promise<Recipe> {
+export async function getTrashedById(id: string, userId: string): Promise<Recipe> {
   const recipeId = validateRecipeId(id);
   const recipe = await getOwnedRecipeOrThrow({ recipeId, userId, isTrash: true });
   return mapRecipe(recipe);
@@ -235,20 +235,11 @@ export async function restoreFromTrash({ recipeId, userId }: TOwnedRecipe) {
   await recipeRepo.updateFields({ data: { deleted_at: null }, recipeId });
 }
 
-type TGetOwnedRecipeOrThrow = {
-  recipeId: string;
-  userId: string;
-  isTrash?: boolean;
-};
+type TGetOwnedRecipeOrThrow = { recipeId: string; userId: string; isTrash?: boolean };
+
 async function getOwnedRecipeOrThrow({ recipeId, userId, isTrash }: TGetOwnedRecipeOrThrow, tx?: DbClient) {
-  const existing = await recipeRepo.findWhere(
-    {
-      id: recipeId,
-      userId,
-      ...(isTrash && { isTrash: true }),
-    },
-    tx,
-  );
+  const existing = await recipeRepo.findWhere({ id: recipeId, userId, ...(isTrash && { isTrash: true }) }, tx);
+
   if (!existing) throw new NotFoundError('Recipe not found');
   return existing;
 }

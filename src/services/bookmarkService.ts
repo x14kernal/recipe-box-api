@@ -1,4 +1,4 @@
-import { mapRecipe, mapRecipeListItem } from '../mappers/recipeMapper.js';
+import { mapRecipeListItem } from '../mappers/recipeMapper.js';
 import * as bookmarkRepo from '../repositories/bookmarkRepository.js';
 import type { ListRecipesQueryParsed } from '../types/recipe.js';
 

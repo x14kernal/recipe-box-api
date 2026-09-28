@@ -23,11 +23,17 @@ export async function findWhere({ id, userId, isTrash }: TFindWhere, client: DbC
       recipeTag: { include: { tag: true } },
       recipeImage: true,
       user: true,
+      ...(userId && {
+        userBookmarks: {
+          where: { user_id: userId },
+          select: { id: true },
+        },
+      }),
     },
   });
 }
 
-export async function findPublicById(id: string, client: DbClient = prisma) {
+export async function findPublicById({ id, userId }: { id: string; userId?: string }, client: DbClient = prisma) {
   return client.recipe.findFirst({
     where: { id, deleted_at: null, visibility: 'public' },
     include: {
@@ -36,18 +42,12 @@ export async function findPublicById(id: string, client: DbClient = prisma) {
       recipeTag: { include: { tag: true } },
       recipeImage: true,
       user: true,
-    },
-  });
-}
-
-export async function findByIdOrThrow(id: string, client: DbClient = prisma) {
-  return client.recipe.findUniqueOrThrow({
-    where: { id },
-    include: {
-      recipeIngredient: { include: { ingredient: true } },
-      recipeStep: { orderBy: { position: 'asc' } },
-      recipeTag: { include: { tag: true } },
-      recipeImage: true,
+      ...(userId && {
+        userBookmarks: {
+          where: { user_id: userId },
+          select: { id: true },
+        },
+      }),
     },
   });
 }
@@ -122,6 +122,12 @@ export async function findMany(
         user: { select: { id: true, username: true, display_name: true } },
         recipeTag: { select: { tag: { select: { id: true, name: true, slug: true } } } },
         recipeImage: { select: { id: true, image_url: true } },
+        ...(userId && {
+          userBookmarks: {
+            where: { user_id: userId },
+            select: { id: true },
+          },
+        }),
       },
     }),
 
