@@ -18,16 +18,31 @@ export async function findMany(
 ) {
   const where: UserBookmarkWhereInput = {
     user_id: userId,
+
     recipe: {
       deleted_at: null,
-      visibility: 'public',
+
+      AND: [
+        { OR: [{ visibility: 'public' }, { user_id: userId }] },
+
+        ...(ingredientSlugs?.length
+          ? ingredientSlugs.map((slug) => ({
+              recipeIngredient: { some: { ingredient: { slug } } },
+            }))
+          : []),
+
+        ...(tagSlugs?.length
+          ? [
+              {
+                OR: tagSlugs.map((slug) => ({
+                  recipeTag: { some: { tag: { slug } } },
+                })),
+              },
+            ]
+          : []),
+      ],
+
       ...(searchTerm && { title: { contains: searchTerm, mode: 'insensitive' } }),
-      ...(ingredientSlugs?.length && {
-        AND: ingredientSlugs.map((slug) => ({
-          recipeIngredient: { some: { ingredient: { slug } } },
-        })),
-      }),
-      ...(tagSlugs?.length && { OR: tagSlugs.map((slug) => ({ recipeTag: { some: { tag: { slug } } } })) }),
     },
   };
 
@@ -45,6 +60,7 @@ export async function findMany(
             recipeStep: { orderBy: { position: 'asc' } },
             recipeImage: true,
             user: true,
+            userBookmarks: { where: { user_id: userId }, select: { id: true } },
           },
         },
       },
