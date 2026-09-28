@@ -84,7 +84,7 @@ export async function findMany(
   client: DbClient = prisma,
 ) {
   const where: RecipeWhereInput = {
-    ...(!userId && !isTrash && { visibility: 'public' }),
+    ...(!isTrash && { visibility: 'public' }),
 
     deleted_at: isTrash === undefined ? null : isTrash ? { not: null } : null,
 

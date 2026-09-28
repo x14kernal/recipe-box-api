@@ -36,7 +36,7 @@ export function mapRecipe(recipe: DbRecipe): Recipe {
     visibility: recipe.visibility,
     createdAt: recipe.created_at.toISOString(),
     updatedAt: recipe.updated_at.toISOString(),
-    isBookmarked: recipe.userBookmarks.length > 0,
+    isBookmarked: (recipe.userBookmarks?.length ?? 0) > 0,
 
     user: {
       id: recipe.user.id,
@@ -78,7 +78,7 @@ export function mapRecipeListItem(recipe: DbRecipeListItem): RecipeListItem {
     servingSize: recipe.serving_size,
     visibility: recipe.visibility,
     createdAt: recipe.created_at.toISOString(),
-    isBookmarked: recipe.userBookmarks.length > 0,
+    isBookmarked: (recipe.userBookmarks?.length ?? 0) > 0,
 
     user: {
       id: recipe.user.id,
