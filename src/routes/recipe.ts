@@ -3,6 +3,7 @@ import * as recipeController from '../controllers/recipeController.js';
 import { validate } from '../middlewares/validate.js';
 import { createRecipeSchema, listRecipesQuerySchema, updateRecipeSchema } from '../types/recipe.js';
 import { requireAuth } from '../middlewares/requireAuth.js';
+import { optionalAuth } from '../middlewares/optionalAuth.js';
 
 const router: Router = Router();
 
@@ -14,8 +15,8 @@ router.get('/mine/:id', requireAuth, recipeController.getMyRecipeById);
 router.get('/trash', [requireAuth, validate(listRecipesQuerySchema, 'query')], recipeController.getMyTrashedRecipes);
 router.get('/trash/:id', requireAuth, recipeController.getTrashedById);
 
-router.get('/random', recipeController.getRandomRecipe);
-router.get('/:id', recipeController.getById);
+router.get('/random', optionalAuth, recipeController.getRandomRecipe);
+router.get('/:id', optionalAuth, recipeController.getById);
 
 // Protected
 router.use(requireAuth);
